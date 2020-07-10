@@ -1,0 +1,1387 @@
+---
+title: "NYRR7"
+author: "Christopher Bloome"
+date: "7/4/2020"
+output:   
+  html_document:
+    highlight: pygments
+    theme: journal
+    toc: yes
+    toc_depth: 3
+    toc_float:
+      collapsed: yes
+      number_sections: yes
+      smooth_scroll: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Intro 
+
+In addition to being a formidable physical challenge for the participants, the NYC Marathon is a logistical Everest for its organizational body - the New York Road Runners. The course takes some 50,000+ runners through all 5 boroughs. Starting in the secluded Staten Island, and ending in Central Park, the participants are escorted by approximately 10,000 volunteers through the 26.2 mile course. 
+
+From the time the runners enter the starting village, they are separated into one of 3 groups designated by the color of their bib-number: green, orange or blue, correlating to which portion of the Verrazano-Narrows bridge their race starts from (the courses converge around mile 3). Additionally, there are 4 different starting times referred to as "waves": 9:40, 10;10, 10:35 and 11am. Finally, within each Wave and starting line, there is an additional classification to maintain order and reduce crowding: each Wave is broken into 6 "corrals" which determine their starting order within the wave.   
+
+![](C:\Users\bloom\Documents\NYRR1.PNG)
+
+To provide a sense of scale: rounding down, each corral contains around 700 runners, meaning each starting line within a wave hosts around 4200 runners. As there are 3 starting lines, we see approximately 12,600 runners in each wave for our 50k+ total runners. 
+
+## Objective
+
+With the advent of COVID-19, the structure of many events will need to be revisited to limit large groups. My ultimate goal for this exercise is to manipulate starting times for each corral and find to what degree congestion on course could be alleviated. I will also explore how course congestion is a function of time - and how increasing the duration the Marathon course is open relates to lower congestion rates throughout the course. As permits and road closure is undoubtedly one of NYRRs biggest expenditures on race-day, I imagine optimizing in this way would be of particular interest to race promoters. 
+
+In order to accomplish the above, I will first model the 2019 NYC Marathon by way of probability distributions based on actual runner performances. From here, I can then measure and visualize congestion on course, before optimizing starting times to minimize runner traffic. 
+
+## Process 
+
+* Web scrape Results 
+* Check for strength of correlation between results and Wave/Corrals/Starting lines. 
+* Describe distribution within each group for various splits on course (10k, Half, 30k, Full Marathon)
+* Simulate race with various starting schemes
+* Visualize congestion on course 
+* Validate Model: compare actual 2019 marathon results to simulated 2019 results 
+* Build function to describe congestion on course numerically. 
+* Optimize function: find optimal starting times for each group to minimize traffic
+* Verify model: compare optimal 2019 starting times to actual 2019 starting times
+
+## Limitations in Scope
+
+In general, the wave and corral each runner is issued is correlated with their expected finishing time. I will be classifying and describing the performance of the runners in each group, however, I will not attempting to re-engineer the NYRR race prediction process. This project assumes that the NYRR race prediction methods will be consistent in any applications of these findings, and that the performance of runners in subsequent years is relatively similar to those in 2019. While I suspect there is some variation in performances year to year, I would imagine much of these variations could be attributed to things like weather, which impact all runners, and the relative differences in performance might actual by minimal.  
+
+
+# Gather Data
+
+We will begin by aggregating results from the 2019 NYC Marathon. I will be scraping 36 pieces of information about every finisher in the 2019 race. We have "splits" (the time the runner reached a designated mile or km marker) for miles 3-26, every 5 kilometers, and their ultimate finishing time (34 splits in total.) Each of these splits and their official marathon finishing time is a variation of a metric which has been referred to as "chip time" - in these cases the "clock" for each runner does not start till the runner passes the starting line. 
+
+We also have a metric called "gun time" for the full marathon, which can think of as a proxy for time of day. Gun time differs from their official marathon finishing time (Chip Time) in that for "gun time" the "clock" starts when the course opens and the first runner starts their race (when the starting pistol or "gun" goes off). With each runners gun time and official marathon finishing time, we can find when they crossed the starting line relative to other runners, as well as when they passed the various mile markers on course. 
+
+Finally, we will also be pulling what bib number each runner was issued, as this is correlated with their wave, and by extension their expected finishing time.  
+
+![](C:\Users\bloom\Documents\NYRR2.PNG)
+
+We will be pulling the data in Yellow and Green above. Bib number will be pulled form the URL. 
+
+## Install Packages
+
+```{r warning=FALSE, message=FALSE}
+library(RSelenium)
+library(lubridate)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+#library(rstatix)
+library(RCurl)
+```
+
+## Web Scrape
+
+```{r eval=FALSE}
+remDr <- remoteDriver(remoteServerAddr = "localhost", port = 4445L, browserName = "firefox")
+remDr$open()
+```
+
+While "only" ~50,000 runners participate in the NYC Marathon each year, the manner in which NYRR issues bib numbers allows for some flexibility. There are 73000 total possible numbers for runners, only 50K of which are ultimately used. As a result, we will need to scrape the result page for all 73000 possible numbers and exclude the null results. 
+
+```{r eval=FALSE}
+URLStart <- "https://results.nyrr.org/event/M2019/result/"
+
+#Loop through each result URL individually, pulling splits and gun time for each athlete 
+for (i in 1:73000) {
+ResultURL <- paste(URLStart,i,sep="")
+remDr$navigate(ResultURL)
+#2 second sleep for load time
+Sys.sleep(2)
+page <- read_html(remDr$getPageSource()[[1]])
+Result <- page %>%
+	html_nodes(".additional-info .col-md-4 .ng-binding , .col-md-8 .ng-binding") %>%
+	html_text() 
+#Only pull results with all 35 data points. 
+if (length(Result) == 35) {
+    Result_Table[i,1] <- i
+    Result_Table[i,2:36] <- Result
+    }
+}
+
+```
+
+```{r include=FALSE}
+#The above code took ~40 hours to run. I stored the results in a CSV File for timely replication. 
+
+x <- getURL("https://raw.githubusercontent.com/ChristopherBloome/604/master/RT_Backup9")
+Result_Table_X <- read.csv(text = x)
+```
+
+# Clean Data 
+
+## Remove empty lines
+
+```{r}
+Clean_Results <- subset(Result_Table_X,!is.na(Result_Table_X$V1))  
+```
+
+## Pull Variable names
+```{r}
+names(Clean_Results)
+```
+As we see above, our data does not have useful variable names
+```{r eval=FALSE}
+ResultURL <- paste(URLStart,2,sep="")
+remDr$navigate(ResultURL)
+Sys.sleep(2)
+page <- read_html(remDr$getPageSource()[[1]])
+Result_Col_Names <- page %>%
+	html_nodes(".col-md-6 .col-md-4 .ng-binding") %>%
+	html_text() 
+```
+```{r include=FALSE}
+#Above code works - used this method for timely replication.
+Result_Col_Names <- c("3M","5K","4M","5M","6M","10K","7M","8M","9M","15K","10M","11M","12M","20K","13M","HALF","14M","15M","25K","16M","17M","18M","30K","19M","20M","21M","35K","22M","23M","24M","40K","25M","26M","MAR" )
+```
+```{r eval=FALSE}
+names(Clean_Results) <- c("bib num","gun time",Result_Col_Names)
+```
+
+## Reformat times
+R has not interpreted our splits as duration - we need to use lubridate to alter accordingly. We will be using seconds as our unit moving forward, though will ultimate measure congestion over a minute period.  
+
+```{r eval=FALSE}
+Clean_Results1 <- Clean_Results
+
+for (j in 1: nrow(Clean_Results1)) {
+    for (i in 2:36) { 
+      Clean_Results1[j,i]<-as.duration(hms(Clean_Results[j,i]))
+    }
+}
+```
+
+## Categorize 
+
+We will now sort our runners into 72 different categories. As mentioned above, the NYC Marathon has 3 different starting lines denoted by Blue, Green and Orange colored numbers. Additionally there are 4 different start times for the race, and within each wave, there are 6 different starting "corrals" which determine where within each wave and each starting line the runners stand. Luckily, we can determine the start time and starting line of each runner
+from their issued bib numbers. Corrals, unfortunately, are not listed in this document, which complicates things. That being said - each starting time/line combination consists of 6000 potential numbers for 6 corrals. I will work off the assumption that each corral correlates with each 1000 numbers. 
+
+Regarding professional runners - there are a number of professional fields in the NYC Marathon: the pro are broken into "Professional", "semi-pro" and "local elite." As this group is an outlier and relatively very small, we will be removing them from our analysis.  
+
+Finally - as we will likely be sorting by corral in the future, we will use "one hot encoding" for this variable at this stage - effectively creating a binary variable for each of the 72 corrals. I have hidden this block of code (230 lines in total) but will share the head of the resulting table. 
+
+![](C:\Users\bloom\Documents\NYRR3.PNG)
+
+```{r include=FALSE}
+x <- getURL("https://raw.githubusercontent.com/ChristopherBloome/604/master/Clean_Results1")
+Clean_Results1 <- read.csv(text = x)
+
+Result_Col_Names <- c("3M","5K","4M","5M","6M","10K","7M","8M","9M","15K","10M","11M","12M","20K","13M","HALF","14M","15M","25K","16M","17M","18M","30K","19M","20M","21M","35K","22M","23M","24M","40K","25M","26M","MAR" )
+Clean_Results1 <- Clean_Results1[,-1]
+names(Clean_Results1) <- c("bib num","gun time",Result_Col_Names)
+
+```
+
+```{r include=FALSE}
+Clean_Results2 <- Clean_Results1 %>%
+  mutate(W1CPA = `bib num` >= 0 & `bib num` < 1000) %>%
+  mutate(W1C1B = `bib num` >= 1000 & `bib num` < 2000) %>%
+  mutate(W1C2B = `bib num` >= 4000 & `bib num` < 5000) %>%
+  mutate(W1C3B = `bib num` >= 7000 & `bib num` < 8000) %>%
+  mutate(W1C4B = `bib num` >= 8000 & `bib num` < 9000) %>%
+  mutate(W1C5B = `bib num` >= 9000 & `bib num` < 10000) %>%
+  mutate(W1C6B = `bib num` >= 10000 & `bib num` < 11000) %>%
+  mutate(W1C1O = `bib num` >= 2000 & `bib num` < 3000) %>%
+  mutate(W1C2O = `bib num` >= 5000 & `bib num` < 6000) %>%
+  mutate(W1C3O = `bib num` >= 11000 & `bib num` < 12000) %>%
+  mutate(W1C4O = `bib num` >= 12000 & `bib num` < 13000) %>%
+  mutate(W1C5O = `bib num` >= 13000 & `bib num` < 14000) %>%
+  mutate(W1C6O = `bib num` >= 14000 & `bib num` < 15000) %>%
+  mutate(W1C1G = `bib num` >= 3000 & `bib num` < 4000) %>%
+  mutate(W1C2G = `bib num` >= 6000 & `bib num` < 7000) %>%
+  mutate(W1C3G = `bib num` >= 15000 & `bib num` < 16000) %>%
+  mutate(W1C4G = `bib num` >= 16000 & `bib num` < 17000) %>%
+  mutate(W1C5G = `bib num` >= 17000 & `bib num` < 18000) %>%
+  mutate(W1C6G = `bib num` >= 18000 & `bib num` < 19000) %>%
+  mutate(W2C1B = `bib num` >= 19000 & `bib num` < 20000) %>%
+  mutate(W2C2B = `bib num` >= 20000 & `bib num` < 21000) %>%
+  mutate(W2C3B = `bib num` >= 21000 & `bib num` < 22000) %>%
+  mutate(W2C4B = `bib num` >= 22000 & `bib num` < 23000) %>%
+  mutate(W2C5B = `bib num` >= 23000 & `bib num` < 24000) %>%
+  mutate(W2C6B = `bib num` >= 24000 & `bib num` < 25000) %>%
+  mutate(W2C1O = `bib num` >= 25000 & `bib num` < 26000) %>%
+  mutate(W2C2O = `bib num` >= 26000 & `bib num` < 27000) %>%  
+  mutate(W2C3O = `bib num` >= 27000 & `bib num` < 28000) %>% 
+  mutate(W2C4O = `bib num` >= 28000 & `bib num` < 29000) %>% 
+  mutate(W2C5O = `bib num` >= 29000 & `bib num` < 30000) %>%      
+  mutate(W2C6O = `bib num` >= 30000 & `bib num` < 31000) %>% 
+  mutate(W2C1G = `bib num` >= 31000 & `bib num` < 32000) %>% 
+  mutate(W2C2G = `bib num` >= 32000 & `bib num` < 33000) %>% 
+  mutate(W2C3G = `bib num` >= 33000 & `bib num` < 34000) %>% 
+  mutate(W2C4G = `bib num` >= 34000 & `bib num` < 35000) %>% 
+  mutate(W2C5G = `bib num` >= 35000 & `bib num` < 36000) %>% 
+  mutate(W2C6G = `bib num` >= 36000 & `bib num` < 37000) %>% 
+  mutate(W3C1B = `bib num` >= 37000 & `bib num` < 38000) %>% 
+  mutate(W3C2B = `bib num` >= 38000 & `bib num` < 39000) %>% 
+  mutate(W3C3B = `bib num` >= 39000 & `bib num` < 40000) %>% 
+  mutate(W3C4B = `bib num` >= 40000 & `bib num` < 41000) %>% 
+  mutate(W3C5B = `bib num` >= 41000 & `bib num` < 42000) %>% 
+  mutate(W3C6B = `bib num` >= 42000 & `bib num` < 43000) %>% 
+  mutate(W3C1O = `bib num` >= 43000 & `bib num` < 44000) %>%
+  mutate(W3C2O = `bib num` >= 44000 & `bib num` < 45000) %>%
+  mutate(W3C3O = `bib num` >= 45000 & `bib num` < 46000) %>%
+  mutate(W3C4O = `bib num` >= 46000 & `bib num` < 47000) %>%
+  mutate(W3C5O = `bib num` >= 47000 & `bib num` < 48000) %>%
+  mutate(W3C6O = `bib num` >= 48000 & `bib num` < 49000) %>%
+  mutate(W3C1G = `bib num` >= 49000 & `bib num` < 50000) %>%
+  mutate(W3C2G = `bib num` >= 50000 & `bib num` < 51000) %>%
+  mutate(W3C3G = `bib num` >= 51000 & `bib num` < 52000) %>%
+  mutate(W3C4G = `bib num` >= 52000 & `bib num` < 53000) %>%
+  mutate(W3C5G = `bib num` >= 53000 & `bib num` < 54000) %>%
+  mutate(W3C6G = `bib num` >= 54000 & `bib num` < 55000) %>%
+  mutate(W4C1B = `bib num` >= 55000 & `bib num` < 56000) %>% 
+  mutate(W4C2B = `bib num` >= 56000 & `bib num` < 57000) %>% 
+  mutate(W4C3B = `bib num` >= 57000 & `bib num` < 58000) %>% 
+  mutate(W4C4B = `bib num` >= 58000 & `bib num` < 59000) %>% 
+  mutate(W4C5B = `bib num` >= 59000 & `bib num` < 60000) %>% 
+  mutate(W4C6B = `bib num` >= 60000 & `bib num` < 61000) %>% 
+  mutate(W4C1O = `bib num` >= 61000 & `bib num` < 62000) %>% 
+  mutate(W4C2O = `bib num` >= 62000 & `bib num` < 63000) %>% 
+  mutate(W4C3O = `bib num` >= 63000 & `bib num` < 64000) %>% 
+  mutate(W4C4O = `bib num` >= 64000 & `bib num` < 65000) %>% 
+  mutate(W4C5O = `bib num` >= 65000 & `bib num` < 66000) %>% 
+  mutate(W4C6O = `bib num` >= 66000 & `bib num` < 67000) %>% 
+  mutate(W4C1G = `bib num` >= 67000 & `bib num` < 68000) %>% 
+  mutate(W4C2G = `bib num` >= 68000 & `bib num` < 69000) %>% 
+  mutate(W4C3G = `bib num` >= 69000 & `bib num` < 70000) %>% 
+  mutate(W4C4G = `bib num` >= 70000 & `bib num` < 71000) %>% 
+  mutate(W4C5G = `bib num` >= 71000 & `bib num` < 72000) %>% 
+  mutate(W4C6G = `bib num` >= 72000 & `bib num` < 73000) 
+
+```
+```{r include=FALSE}
+for (i in 1:nrow(Clean_Results2)){
+    if(Clean_Results2$W1CPA[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W1CPA"}
+    else if (Clean_Results2$W1C1B[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W1C1B"}
+    else if (Clean_Results2$W1C2B[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W1C2B"}
+    else if (Clean_Results2$W1C3B[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W1C3B"}
+    else if (Clean_Results2$W1C4B[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W1C4B"}
+    else if (Clean_Results2$W1C5B[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W1C5B"}
+    else if (Clean_Results2$W1C6B[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W1C6B"}
+    else if (Clean_Results2$W1C1O[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W1C1O"}
+    else if (Clean_Results2$W1C2O[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W1C2O"}
+    else if (Clean_Results2$W1C3O[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W1C3O"}
+    else if (Clean_Results2$W1C4O[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W1C4O"}
+    else if (Clean_Results2$W1C5O[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W1C5O"}
+    else if (Clean_Results2$W1C6O[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W1C6O"}
+    else if (Clean_Results2$W1C1G[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W1C1G"}
+    else if (Clean_Results2$W1C2G[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W1C2G"}
+    else if (Clean_Results2$W1C3G[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W1C3G"}
+    else if (Clean_Results2$W1C4G[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W1C4G"}
+    else if (Clean_Results2$W1C5G[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W1C5G"}
+    else if (Clean_Results2$W1C6G[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W1C6G"}
+    else if (Clean_Results2$W2C1B[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W2C1B"}
+    else if (Clean_Results2$W2C2B[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W2C2B"}
+    else if (Clean_Results2$W2C3B[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W2C3B"}
+    else if (Clean_Results2$W2C4B[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W2C4B"}
+    else if (Clean_Results2$W2C5B[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W2C5B"}
+    else if (Clean_Results2$W2C6B[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W2C6B"}
+    else if (Clean_Results2$W2C1O[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W2C1O"}
+    else if (Clean_Results2$W2C2O[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W2C2O"}
+    else if (Clean_Results2$W2C3O[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W2C3O"}
+    else if (Clean_Results2$W2C4O[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W2C4O"}
+    else if (Clean_Results2$W2C5O[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W2C5O"}
+    else if (Clean_Results2$W2C6O[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W2C6O"}
+    else if (Clean_Results2$W2C1G[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W2C1G"}
+    else if (Clean_Results2$W2C2G[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W2C2G"}
+    else if (Clean_Results2$W2C3G[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W2C3G"}
+    else if (Clean_Results2$W2C4G[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W2C4G"}
+    else if (Clean_Results2$W2C5G[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W2C5G"}
+    else if (Clean_Results2$W2C6G[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W2C6G"}
+     else if (Clean_Results2$W3C1B[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W3C1B"}
+    else if (Clean_Results2$W3C2B[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W3C2B"}
+    else if (Clean_Results2$W3C3B[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W3C3B"}
+    else if (Clean_Results2$W3C4B[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W3C4B"}
+    else if (Clean_Results2$W3C5B[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W3C5B"}
+    else if (Clean_Results2$W3C6B[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W3C6B"}
+    else if (Clean_Results2$W3C1O[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W3C1O"}
+    else if (Clean_Results2$W3C2O[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W3C2O"}
+    else if (Clean_Results2$W3C3O[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W3C3O"}
+    else if (Clean_Results2$W3C4O[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W3C4O"}
+    else if (Clean_Results2$W3C5O[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W3C5O"}
+    else if (Clean_Results2$W3C6O[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W3C6O"}
+    else if (Clean_Results2$W3C1G[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W3C1G"}
+    else if (Clean_Results2$W3C2G[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W3C2G"}
+    else if (Clean_Results2$W3C3G[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W3C3G"}
+    else if (Clean_Results2$W3C4G[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W3C4G"}
+    else if (Clean_Results2$W3C5G[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W3C5G"}
+    else if (Clean_Results2$W3C6G[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W3C6G"} 
+     else if (Clean_Results2$W4C1B[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W4C1B"}
+    else if (Clean_Results2$W4C2B[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W4C2B"}
+    else if (Clean_Results2$W4C3B[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W4C3B"}
+    else if (Clean_Results2$W4C4B[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W4C4B"}
+    else if (Clean_Results2$W4C5B[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W4C5B"}
+    else if (Clean_Results2$W4C6B[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W4C6B"}
+    else if (Clean_Results2$W4C1O[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W4C1O"}
+    else if (Clean_Results2$W4C2O[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W4C2O"}
+    else if (Clean_Results2$W4C3O[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W4C3O"}
+    else if (Clean_Results2$W4C4O[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W4C4O"}
+    else if (Clean_Results2$W4C5O[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W4C5O"}
+    else if (Clean_Results2$W4C6O[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W4C6O"}
+    else if (Clean_Results2$W4C1G[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W4C1G"}
+    else if (Clean_Results2$W4C2G[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W4C2G"}
+    else if (Clean_Results2$W4C3G[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W4C3G"}
+    else if (Clean_Results2$W4C4G[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W4C4G"}
+    else if (Clean_Results2$W4C5G[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W4C5G"}
+    else if (Clean_Results2$W4C6G[i]==TRUE) {
+      Clean_Results2$CorWrap[i] = "W4C6G"} 
+  }
+```
+
+With each of our corrals listed as their own variable, we can pull wave, corral and start color. 
+```{r}
+Clean_Results2$Wave <- substr(Clean_Results2$CorWrap,1,2)
+Clean_Results2$Cor <- substr(Clean_Results2$CorWrap,3,4)
+Clean_Results2$Col <- substr(Clean_Results2$CorWrap,5,6)
+Clean_Results2$Gun_Start <- as.numeric(Clean_Results2$`gun time`) - as.numeric(Clean_Results2$MAR)
+Clean_Results2$Gun_Start_Round<-round(Clean_Results2$Gun_Start/60)
+```
+
+Here is a list of all our  variables with some example data from the first corral. Note how Corral and Waves are denoted with a W1C5B scheme (Wave 1, Corral 5, Blue starting line)
+
+```{r}
+head(Clean_Results2)
+```
+
+# Explore Data
+
+## First Visualizations 
+```{R}
+ggplot(Clean_Results2, aes(y=as.numeric(MAR), fill=Wave)) + 
+  geom_boxplot() + facet_wrap(~Wave, nrow = 1) + theme(legend.position = "none") + ggtitle("Marathon Chip Time by Wave")
+
+ggplot(Clean_Results2, aes(y = ..density.., x=as.numeric(MAR), fill=Cor)) + 
+  geom_histogram(position="identity",bins=100) + facet_wrap(~Wave, ncol = 1) + theme(legend.position = "none")+ geom_density(alpha=.5)+ ggtitle("Marathon Chip Time by Wave and Corral")
+```
+
+We see above the first inclination that Corral (as identified by my prediction that it was related to bib number) may not be indicative of performance. 
+
+```{r}
+ggplot(Clean_Results2, aes(y = ..density..,  x=as.numeric(MAR), fill=Wave)) + 
+  geom_histogram(alpha=.7, position = "identity",bins=100) + theme(legend.position = "none") + geom_density(alpha=.5)+ggtitle("Marathon Chip Time by Wave - overlaped histogram")
+
+ggplot(Clean_Results2, aes(x=as.numeric(MAR), fill=Wave)) + geom_histogram(bins = 100)+ggtitle("Marathon Chip Time by Wave - stacked histogram")
+
+ggplot(Clean_Results2, aes(y = ..density..,  x=as.numeric(`gun time`), fill=Wave)) + 
+  geom_histogram(alpha=.7, bins=100) + theme(legend.position = "none") + geom_density(alpha=.5)+ggtitle("Marathon Gun Time by Wave - stacked histogram")
+```
+
+We also see that the performances are roughly normal, with both mean and SD decreasing as we move from Wave 1 to Wave 4. 
+
+## Predictive power of Waves, Start Line, Corrals 
+
+We will now measure if Wave, Corral and/or Starting Line assignment is truly indicative of performance.
+
+```{r}
+CRTest <- lm(MAR ~ Wave, Clean_Results2)
+summary(CRTest)$r.squared
+```
+
+We see a .45 R Squared using Wave alone to predict performance. 
+
+As our Corral designation contains Wave information (we used a W1C1B - Wave, Corral, Starting Line Color - numbering system), we need to predict performance by corral or starting line within a wave to learn if Corral contains additional useful information.
+
+```{r}
+CRTest1 <- lm(MAR ~ Cor,subset(Clean_Results2, Wave == "W2"))
+summary(CRTest1)$r.squared
+CRTest2 <- lm(MAR ~ Col,subset(Clean_Results2, Wave == "W2"))
+summary(CRTest2)$r.squared
+```
+
+Above we see that neither corral nor starting line is at all predictive. 
+
+```{r}
+CRTest3 <- lm(MAR ~ Col,subset(Clean_Results2,Wave == "W2" & Cor=="C1"))
+summary(CRTest3)$r.squared
+```
+
+Finally, controlling for wave and corral, we find that starting line alone does not appear to be correlated with performance. 
+
+Before moving forward, I do want to call out that it is very likely that the NYRR can predict performance. I believe that my assumption that each corral is correlated to bib number to be false. As we do not know what runners are in which corral, we will be modeling runner performance per wave, and largely ignoring corral and starting line information. 
+
+## Outline of New Starting Line Format 
+
+As starting line and corral designation (as labeled here) are not predictive, we will remove these columns from our Data Frame, but will be keeping the Coral designation in the roll-up field ("Cor_Wrap"). In our new race start format, we will work with corral as our unit, as it is easier to stagger when working groups ~2100 in size. **The final plan will release corrals from each of each starting line at the same time (-700 per corral, 3 starting lines), effectively working in units of ~2100 runners. ** As the 3 starting lines of the Marathon run separate paths till mile 3, they will remain separated during the most congested parts of the race.   
+
+```{r}
+Clean_Results3 <- data.frame()
+Clean_Results3 <- Clean_Results2[,c(1:36,110:115)]
+Clean_Results3$MAR <-as.numeric(Clean_Results2$MAR)
+Clean_Results3$HALF <- as.numeric(Clean_Results3$HALF)
+head(Clean_Results3)
+```
+
+# Build and Validate Model 
+
+Now that we know which our fields are predictive of performance, we can build a model which predicts congestion on course for various starting times and formats. 
+
+## Check Normality
+
+While not perfect, it seems as the full and half marathon times for the entire field is near a normal distribution. 
+
+```{r}
+par(mfrow=c(1,2))
+
+qqnorm(Clean_Results3$MAR, main = "Marathon - full field")
+qqline(Clean_Results3$MAR)
+
+qqnorm(Clean_Results3$HALF, main = "Half, full field")
+qqline(Clean_Results3$HALF)
+```
+
+Lets check how waves impact the distribution of times at the half marathon distance
+
+```{r}
+par(mfrow=c(2,2))
+
+qqnorm(subset(Clean_Results3, Wave=="W1")$HALF, main = "Half, Wave 1")
+qqline(subset(Clean_Results3, Wave=="W1")$HALF)
+
+qqnorm(subset(Clean_Results3, Wave=="W2")$HALF, main = "Half, Wave 2")
+qqline(subset(Clean_Results3, Wave=="W2")$HALF)
+
+qqnorm(subset(Clean_Results3, Wave=="W3")$HALF, main = "Half, Wave 3")
+qqline(subset(Clean_Results3, Wave=="W3")$HALF)
+
+qqnorm(subset(Clean_Results3, Wave=="W4")$HALF, main = "Half, Wave 4")
+qqline(subset(Clean_Results3, Wave=="W4")$HALF)
+```
+ 
+ ...and how times are distributed at various splits for runners in Wave 2. 
+
+```{r}
+Clean_Results3$`5K` <- as.numeric(Clean_Results3$`5K`)
+Clean_Results3$`10K` <- as.numeric(Clean_Results3$`10K`)
+Clean_Results3$`30K` <- as.numeric(Clean_Results3$`30K`)
+
+par(mfrow=c(3,2))
+
+qqnorm(subset(Clean_Results3, Wave=="W2")$`5K`, main = "5k, Wave 2")
+qqline(subset(Clean_Results3, Wave=="W2")$`5K`)
+
+qqnorm(subset(Clean_Results3, Wave=="W2")$`10K`, main = "10k, Wave 2")
+qqline(subset(Clean_Results3, Wave=="W2")$`10K`)
+
+qqnorm(subset(Clean_Results3, Wave=="W2")$HALF, main = "Half, Wave 2")
+qqline(subset(Clean_Results3, Wave=="W2")$HALF)
+
+qqnorm(subset(Clean_Results3, Wave=="W2")$`30K`, main = "30k, Wave 2")
+qqline(subset(Clean_Results3, Wave=="W2")$`30K`)
+
+qqnorm(subset(Clean_Results3, Wave=="W2")$MAR, main = "Marathon, Wave 2")
+qqline(subset(Clean_Results3, Wave=="W2")$MAR)
+``` 
+
+We can see above that the distributions are fairly normal till we get to the tails over 2 SDs above the mean (Marathons are hard, and NYC is a race that one finishes even if they need to walk), we can use a normal distribution to roughly describe the performance of each wave of runners. 
+
+## Simulate Splits via Distributions. 
+
+We will next compare our runners performance by wave at various splits (runner distance) to normal distributions. This can best be accomplished by writing a function that (1) captures the actual mean and SD for each of our sub-groups, (2) applies a delta to the SD for scaling purposes, and (3) generates a random sample of the same size of our sub-group population, so we can compare simulated times (normally distributed) and those of our actual runners with a visualization.
+
+In this function, each runner will have a theoretical time, which compared to their actual performance seems fairly arbitrary. On aggregate, however, the entire sub group (corral/wave) should have comparable performances. 
+ 
+```{r}
+Clean_Results_Sample <- data.frame(as.numeric(Clean_Results3$`10K`),as.numeric(Clean_Results3$HALF),as.numeric(Clean_Results3$`30K`),as.numeric(Clean_Results3$MAR),Clean_Results3$Wave)
+
+names(Clean_Results_Sample) <- c("10K","HALF","30K","MAR","WAVE")
+```
+
+
+```{r}
+Simulate_Race_Norm <- function(DataSet,W1SD_Delta,W2SD_Delta,W3SD_Delta,W4SD_Delta){
+
+#Simulates Race from normal distribution of preformances; exports SD and Mean for each Wave/Distance pairing. 
+  
+#Each Runner recieves a simulated time, which while not representitive of their preformance, is part of our normal distribution. This will be used for comparing theortrical vs actual times in graphing later. 
+  
+#Subset dataset by Wave 
+Results_Sample_W1 <-subset(DataSet,WAVE=="W1")
+Results_Sample_W2 <-subset(DataSet,WAVE=="W2")
+Results_Sample_W3 <-subset(DataSet,WAVE=="W3")
+Results_Sample_W4 <-subset(DataSet,WAVE=="W4")
+
+#Define Sd and Mean per Distance and Wave 
+W1_10K_Mean_Norm<-mean(as.numeric(Results_Sample_W1$`10K`))
+W1_HALF_Mean_Norm<-mean(as.numeric(Results_Sample_W1$HALF))
+W1_30K_Mean_Norm<-mean(as.numeric(Results_Sample_W1$`30K`))
+W1_MAR_Mean_Norm<-mean(as.numeric(Results_Sample_W1$MAR))
+W1_10K_SD_Norm<-sd(as.numeric(Results_Sample_W1$`10K`))*W1SD_Delta
+W1_HALF_SD_Norm<-sd(as.numeric(Results_Sample_W1$HALF))*W1SD_Delta
+W1_30K_SD_Norm<-sd(as.numeric(Results_Sample_W1$`30K`))*W1SD_Delta
+W1_MAR_SD_Norm<-sd(as.numeric(Results_Sample_W1$MAR))*W1SD_Delta
+  
+W2_10K_Mean_Norm<-mean(as.numeric(Results_Sample_W2$`10K`))
+W2_HALF_Mean_Norm<-mean(as.numeric(Results_Sample_W2$HALF))
+W2_30K_Mean_Norm<-mean(as.numeric(Results_Sample_W2$`30K`))
+W2_MAR_Mean_Norm<-mean(as.numeric(Results_Sample_W2$MAR))
+W2_10K_SD_Norm<-sd(as.numeric(Results_Sample_W2$`10K`))*W2SD_Delta
+W2_HALF_SD_Norm<-sd(as.numeric(Results_Sample_W2$HALF))*W2SD_Delta
+W2_30K_SD_Norm<-sd(as.numeric(Results_Sample_W2$`30K`))*W2SD_Delta
+W2_MAR_SD_Norm<-sd(as.numeric(Results_Sample_W2$MAR))*W2SD_Delta
+  
+W3_10K_Mean_Norm<-mean(as.numeric(Results_Sample_W3$`10K`))
+W3_HALF_Mean_Norm<-mean(as.numeric(Results_Sample_W3$HALF))
+W3_30K_Mean_Norm<-mean(as.numeric(Results_Sample_W3$`30K`))
+W3_MAR_Mean_Norm<-mean(as.numeric(Results_Sample_W3$MAR))
+W3_10K_SD_Norm<-sd(as.numeric(Results_Sample_W3$`10K`))*W3SD_Delta
+W3_HALF_SD_Norm<-sd(as.numeric(Results_Sample_W3$HALF))*W3SD_Delta
+W3_30K_SD_Norm<-sd(as.numeric(Results_Sample_W3$`30K`))*W3SD_Delta
+W3_MAR_SD_Norm<-sd(as.numeric(Results_Sample_W3$MAR))*W3SD_Delta
+  
+W4_10K_Mean_Norm<-mean(as.numeric(Results_Sample_W4$`10K`))
+W4_HALF_Mean_Norm<-mean(as.numeric(Results_Sample_W4$HALF))
+W4_30K_Mean_Norm<-mean(as.numeric(Results_Sample_W4$`30K`))
+W4_MAR_Mean_Norm<-mean(as.numeric(Results_Sample_W4$MAR))
+W4_10K_SD_Norm<-sd(as.numeric(Results_Sample_W4$`10K`))*W4SD_Delta
+W4_HALF_SD_Norm<-sd(as.numeric(Results_Sample_W4$HALF))*W4SD_Delta
+W4_30K_SD_Norm<-sd(as.numeric(Results_Sample_W4$`30K`))*W4SD_Delta
+W4_MAR_SD_Norm<-sd(as.numeric(Results_Sample_W4$MAR))*W4SD_Delta
+
+#Simulate times for each of our distances 
+Results_Sample_W1$`10KSim` <- rnorm(nrow(Results_Sample_W1),mean = W1_10K_Mean_Norm, sd = W1_10K_SD_Norm)
+Results_Sample_W2$`10KSim` <- rnorm(nrow(Results_Sample_W2),mean = W2_10K_Mean_Norm, sd = W2_10K_SD_Norm)
+Results_Sample_W3$`10KSim` <- rnorm(nrow(Results_Sample_W3),mean = W3_10K_Mean_Norm, sd = W3_10K_SD_Norm)
+Results_Sample_W4$`10KSim` <- rnorm(nrow(Results_Sample_W4),mean = W4_10K_Mean_Norm, sd = W4_10K_SD_Norm)
+
+Results_Sample_W1$HALFSim <- rnorm(nrow(Results_Sample_W1),mean = W1_HALF_Mean_Norm, sd = W1_HALF_SD_Norm)
+Results_Sample_W2$HALFSim <- rnorm(nrow(Results_Sample_W2),mean = W2_HALF_Mean_Norm, sd = W2_HALF_SD_Norm)
+Results_Sample_W3$HALFSim <- rnorm(nrow(Results_Sample_W3),mean = W3_HALF_Mean_Norm, sd = W3_HALF_SD_Norm)
+Results_Sample_W4$HALFSim <- rnorm(nrow(Results_Sample_W4),mean = W4_HALF_Mean_Norm, sd = W4_HALF_SD_Norm)
+
+Results_Sample_W1$`30KSim` <- rnorm(nrow(Results_Sample_W1),mean = W1_30K_Mean_Norm, sd = W1_30K_SD_Norm)
+Results_Sample_W2$`30KSim` <- rnorm(nrow(Results_Sample_W2),mean = W2_30K_Mean_Norm, sd = W2_30K_SD_Norm)
+Results_Sample_W3$`30KSim` <- rnorm(nrow(Results_Sample_W3),mean = W3_30K_Mean_Norm, sd = W3_30K_SD_Norm)
+Results_Sample_W4$`30KSim` <- rnorm(nrow(Results_Sample_W4),mean = W4_30K_Mean_Norm, sd = W4_30K_SD_Norm)
+
+Results_Sample_W1$MARSim <- rnorm(nrow(Results_Sample_W1),mean = W1_MAR_Mean_Norm, sd = W1_MAR_SD_Norm)
+Results_Sample_W2$MARSim <- rnorm(nrow(Results_Sample_W2),mean = W2_MAR_Mean_Norm, sd = W2_MAR_SD_Norm)
+Results_Sample_W3$MARSim <- rnorm(nrow(Results_Sample_W3),mean = W3_MAR_Mean_Norm, sd = W3_MAR_SD_Norm)
+Results_Sample_W4$MARSim <- rnorm(nrow(Results_Sample_W4),mean = W4_MAR_Mean_Norm, sd = W4_MAR_SD_Norm)
+
+#Compile Sim and Actual times per Wave and Distance 
+Results_Sample_W1_10K <- data.frame(Results_Sample_W1$`10K`,Results_Sample_W1$`10KSim`) 
+Results_Sample_W1_HALF <- data.frame(Results_Sample_W1$HALF,Results_Sample_W1$HALFSim)
+Results_Sample_W1_30K <- data.frame(Results_Sample_W1$`30K`,Results_Sample_W1$`30KSim`)                          
+Results_Sample_W1_MAR <- data.frame(Results_Sample_W1$MAR,Results_Sample_W1$MARSim)
+
+Results_Sample_W2_10K <- data.frame(Results_Sample_W2$`10K`,Results_Sample_W2$`10KSim`)
+Results_Sample_W2_HALF <- data.frame(Results_Sample_W2$HALF,Results_Sample_W2$HALFSim)
+Results_Sample_W2_30K <- data.frame(Results_Sample_W2$`30K`,Results_Sample_W2$`30KSim`)                          
+Results_Sample_W2_MAR <- data.frame(Results_Sample_W2$MAR,Results_Sample_W2$MARSim)
+    
+Results_Sample_W3_10K <- data.frame(Results_Sample_W3$`10K`,Results_Sample_W3$`10KSim`)
+Results_Sample_W3_HALF <- data.frame(Results_Sample_W3$HALF,Results_Sample_W3$HALFSim)
+Results_Sample_W3_30K <- data.frame(Results_Sample_W3$`30K`,Results_Sample_W3$`30KSim`)                        
+Results_Sample_W3_MAR <- data.frame(Results_Sample_W3$MAR,Results_Sample_W3$MARSim)
+
+Results_Sample_W4_10K <- data.frame(Results_Sample_W4$`10K`,Results_Sample_W4$`10KSim`)
+Results_Sample_W4_HALF <- data.frame(Results_Sample_W4$HALF,Results_Sample_W4$HALFSim)
+Results_Sample_W4_30K <- data.frame(Results_Sample_W4$`30K`,Results_Sample_W4$`30KSim`)                        
+Results_Sample_W4_MAR <- data.frame(Results_Sample_W4$MAR,Results_Sample_W4$MARSim)
+
+#Reformat to TidyData Format; standardize Col names
+dflist2 <- c("Results_Sample_W1_10K","Results_Sample_W1_HALF","Results_Sample_W1_30K","Results_Sample_W1_MAR","Results_Sample_W2_10K","Results_Sample_W2_HALF","Results_Sample_W2_30K","Results_Sample_W2_MAR","Results_Sample_W3_10K","Results_Sample_W3_HALF","Results_Sample_W3_30K","Results_Sample_W3_MAR","Results_Sample_W4_10K","Results_Sample_W4_HALF","Results_Sample_W4_30K","Results_Sample_W4_MAR")
+
+for(i in 1:16){
+  j = get(dflist2[i])
+  names(j) = c("actual","sim")
+  j = pivot_longer(j,cols=c("actual","sim"),names_to = "type",values_to = "time")
+  j$W_D=dflist2[i]
+  assign(dflist2[i],j)
+}
+
+
+#Roll up Sim and Actual Distance/Time pairings to Df per Wave
+Results_Sample_W1 <- rbind(Results_Sample_W1_10K,Results_Sample_W1_HALF,Results_Sample_W1_30K,Results_Sample_W1_MAR)
+Results_Sample_W2 <- rbind(Results_Sample_W2_10K,Results_Sample_W2_HALF,Results_Sample_W2_30K,Results_Sample_W2_MAR)
+Results_Sample_W3 <- rbind(Results_Sample_W3_10K,Results_Sample_W3_HALF,Results_Sample_W3_30K,Results_Sample_W3_MAR)
+Results_Sample_W4 <- rbind(Results_Sample_W4_10K,Results_Sample_W4_HALF,Results_Sample_W4_30K,Results_Sample_W4_MAR)
+
+#Label Waves
+Results_Sample_W1$WAVE = "W1"
+Results_Sample_W2$WAVE = "W2"
+Results_Sample_W3$WAVE = "W3"
+Results_Sample_W4$WAVE = "W4"
+
+#Rollup Waves to one file. 
+Results_Sample <- rbind(Results_Sample_W1, Results_Sample_W2, Results_Sample_W3, Results_Sample_W4)
+
+#Export File, Export Variables. 
+assign("Results_Sample",Results_Sample, envir = .GlobalEnv)
+
+varlist <- c("W1_10K_Mean_Norm","W1_HALF_Mean_Norm","W1_30K_Mean_Norm","W1_MAR_Mean_Norm","W1_10K_SD_Norm","W1_HALF_SD_Norm","W1_30K_SD_Norm","W1_MAR_SD_Norm","W2_10K_Mean_Norm","W2_HALF_Mean_Norm","W2_30K_Mean_Norm","W2_MAR_Mean_Norm","W2_10K_SD_Norm","W2_HALF_SD_Norm","W2_30K_SD_Norm","W2_MAR_SD_Norm","W3_10K_Mean_Norm","W3_HALF_Mean_Norm","W3_30K_Mean_Norm","W3_MAR_Mean_Norm","W3_10K_SD_Norm","W3_HALF_SD_Norm","W3_30K_SD_Norm","W3_MAR_SD_Norm","W4_10K_Mean_Norm","W4_HALF_Mean_Norm","W4_30K_Mean_Norm","W4_MAR_Mean_Norm","W4_10K_SD_Norm","W4_HALF_SD_Norm","W4_30K_SD_Norm","W4_MAR_SD_Norm")
+
+for(i in 1:length(varlist)){
+  assign(varlist[i],get(varlist[i]), envir = .GlobalEnv)
+}
+}
+```
+
+With the above function being built, lets simulate for a delta of 1 (truly normal for all splits and waves, with means and SDs matching the data from that sub-group)
+
+```{r}
+set.seed(4152)
+
+Simulate_Race_Norm(Clean_Results_Sample,1,1,1,1)
+```
+
+Plotting various distances and waves. Each Row corresponds to a Wave (1-4), Columns to a distance (10k, half marathon ~21k, 30k, full marathon ~42k):
+
+```{r}
+ggplot(Results_Sample, aes(y=..density..,x=time, fill=type)) + 
+  geom_histogram(position="dodge",bins = 100) + facet_wrap(~WAVE + W_D, ncol = 4, scales = "free") + theme(strip.background = element_blank(), strip.text = element_blank(), axis.line=element_blank(),axis.text=element_blank())+ geom_density(alpha=.5) + ggtitle("Normal vs Actual Time Distribution, SD & Mean of data", subtitle = "Waves 1-4 (Rows), 10k, Half, 30k, Full Marathon distances (Columns)")
+```
+
+While not perfect, these distributions show a decent starting position. Through trial and error I found that the ideal SD Delta decreases with Wave. Wave 1 and 2 was best fit with an SD of 80% of our sample, Wave 3 and 4 will have the same SD and Mean as our  sample. 
+
+```{r}
+set.seed(4152)
+
+Simulate_Race_Norm(Clean_Results_Sample,.8,.8,1,1)
+
+ggplot(Results_Sample, aes(y=..density..,x=time, fill=type)) + 
+  geom_histogram(position="dodge",bins=100) + facet_wrap(~WAVE + W_D, ncol = 4, scales = "free") + theme(strip.background = element_blank(), strip.text = element_blank(), axis.line=element_blank(),axis.text=element_blank())+ geom_density(alpha=.5)+ ggtitle("Normal vs Actual Time Distribution, SD adjusted, Mean of data", subtitle = "Waves 1-4 (Rows), 10k, Half, 30k, Full Marathon distances (Columns)")
+```
+
+As we see, the density at the mean for the  first 2 waves is still a little low and the sample data has a skew to the right. 
+
+Its worth noting that the above plots have a free X and Y axis. Now is a good time to demonstrate how both the mean and SD decrease as the wave count increases, and to sense the degree to which our simulation matches the actual data. Here are the above plots on the same axis; each Wave is labeled, with all 4 distributions on the same graph. 
+
+```{r}
+ggplot(Results_Sample, aes(y = ..density.., x=time, fill=interaction(W_D, type))) + 
+  geom_histogram(position="identity",bins=100) + facet_wrap(~WAVE, ncol = 1) + theme(legend.position = "none")+ geom_density(alpha=.5)
+```
+
+Again, we can see how the 10k distribution for all waves are slightly more congested at the mean, as are all splits for Wave 1 and 2. Additionally, there is a slight shift in Wave 1 and 2s distribution compared to normal. With that in mind, they are fairly close for the size of the sample and sufficient for our model. 
+
+## Visualize Actual Race
+
+Before we can compare our simulated race to the actual results, we need to visualize the marathon in a way that demonstrates traffic on course. The below function, **Actual_Performance_Viz**, will take a given column containing start times for each runner from our "Clean Results" Data Frame (we will later nest this in a function to apply alternate start times) and visualizations runner traffic at the Start, 10k, half, 30k and finish line. 
+
+To Visualize the actual race, we will use the column we created with the actual start times, however, in future iterations we can nest this in a formula that generates new starting times depending on our use case. 
+
+```{r}
+#Filter out elite runners 
+Clean_Results3 <- subset(Clean_Results3, `bib num` > 999)
+
+Actual_Performance_Viz <- function(col, output.df.name, title){
+  
+#Generates Vizualtion of traffic on course using actual race performances, saves results as DF.
+
+  #Inputs:
+    #col - column in dataframe containing start times 
+    #output.df.name - name of DF to save results in global enviroment
+    #title - title of DF
+
+#Find gun-time splits, round
+Clean_Results3$`10KGun` <- floor(Clean_Results3$`10K`/60+ Clean_Results3[,col])
+Clean_Results3$HalfGun <- floor(Clean_Results3$HALF/60+ Clean_Results3[,col])
+Clean_Results3$`30KGun` <- floor(Clean_Results3$`30K`/60+ Clean_Results3[,col])
+Clean_Results3$MarGun <- floor(Clean_Results3$MAR/60+ Clean_Results3[,col])
+
+#Restructure Data
+Clean_Results4 <- data.frame(Clean_Results3[,col],Clean_Results3$`10KGun`,Clean_Results3$HalfGun,Clean_Results3$`30KGun`,Clean_Results3$Mar,Clean_Results3$CorWrap)
+
+names(Clean_Results4) <- c("Start","10K","Half","30K","Mar","W_C")
+
+#Pivot Data
+Clean_Results5 <- pivot_longer(Clean_Results4,cols=c("Start","10K","Half","30K","Mar"),names_to = "Distance",values_to = "Split") %>%
+  arrange(desc(Split))
+
+#Save
+assign(output.df.name, Clean_Results5, envir = .GlobalEnv)
+
+Clean_Results5$Distance <- factor(Clean_Results5$Distance, levels = c("Start","10K", "Half", "30K", "Mar"))
+
+#Plot
+plot1 <- 
+  ggplot(subset(Clean_Results5, Distance == "Start"), aes(x=Split, fill=W_C)) + 
+  geom_histogram(alpha=.7, binwidth = 1) + theme(legend.position = "none") + geom_density(alpha=.5) + facet_wrap(~Distance, ncol = 1,scales = "free_x")+ ggtitle(title)
+
+plot2 <-
+ggplot(subset(Clean_Results5, Distance != "Start"), aes(x=Split, fill=W_C)) + 
+  geom_histogram(alpha=.7, binwidth = 1) + theme(legend.position = "none") + geom_density(alpha=.5) + facet_wrap(~Distance, ncol = 1,scales = "free_x")+ ggtitle(title)
+
+return(list(plot1,plot2))
+
+}
+
+```
+```{r}
+set.seed(4152)
+Actual_Performance_Viz("Gun_Start_Round","2019_Actual_Df","Actual 2019 Marathon Congestion")
+```
+
+## Volatilize Simulated Race
+
+Our next step is to write a function to simulate, then visualize the marathon with our distributions. While we have already simulated individual performances (when measuring normality), we have yet to account for starting times and have not visualized congestion. As a result, we will use some of our previously defined variables in a new simulation that illustrates congestion as a function of starting time per wave and corral.
+
+### Corral Size
+
+While we know that the corrals have approximately 700 runners, as we will be comparing simulated vs actual congestion, we want to be as accurate as possible when setting corral sizes. Lets create a variables for each wave:corral pairing and use these in our later simulations. 
+
+```{r}
+Sum_Table_Grouped <-Clean_Results3 %>%
+	group_by(W_C = substr(CorWrap,1,4)) %>%
+	summarise(Count = n(), )
+
+Sum_Table_Grouped_SL <-Clean_Results3 %>%
+	group_by(W_C_L = CorWrap) %>%
+	summarise(Count = n(), )
+
+W_C_List <- c("W1C1","W1C2","W1C3","W1C4","W1C5","W1C6","W2C1","W2C2","W2C3","W2C4","W2C5","W2C6","W3C1","W3C2","W3C3","W3C4","W3C5","W3C6","W4C1","W4C2","W4C3","W4C4","W4C5","W4C6")
+
+for (i in 1:24){
+  x <- Sum_Table_Grouped[Sum_Table_Grouped$W_C == W_C_List[i],"Count"]
+  assign(paste(W_C_List[i],"_Size",sep=""),as.numeric(x))
+}
+```
+
+Now is a good time to visualize the wave and corral sizes to ensure they are relatively even: 
+
+```{r}
+Sum_Table_Grouped
+Sum_Table_Grouped_SL
+ggplot(Clean_Results3, aes(x=Cor, fill=Col)) +geom_bar()+facet_wrap(~Wave)
+
+```
+
+### Starting Line Capacity
+
+Finally, we should take a look at our sample of runners and see at what rate they cross the starting line. In the block below, we will see how many runners cross the starting line in a give minute. 
+
+```{r}
+Clean_Results2$Gun_Start <- as.numeric(Clean_Results2$`gun time`) - as.numeric(Clean_Results2$MAR)
+
+Clean_Results2$Gun_Start_Round<-floor(Clean_Results2$Gun_Start/60)
+Clean_Results2 %>%
+	group_by(Wave, Col, Gun_Start_Round) %>%
+	summarise(Count = n()) %>%
+  arrange(desc(Count))
+
+```
+
+We see above that there are plenty of examples of more than the average corral size crossing the starting line in a one minute interval from each of the 3 starting lines. We can confidently build a model which allows ~1 minute for each corral. 
+
+### Build Visualization Functions
+
+With all of the logistics in place, we will start with a function that simulates congestion for a given split, and then nest this in another function for each of our relevant splits. With this information all in one Data Frame we can visualize via a ggplot and facet_wrap. 
+
+Our function for one split, **Simulate_Race_Viz**: 
+
+```{r}
+Simulate_Race_Viz <- function(Dist.List, Split.Mean.List, Split.SD.List, Distance,title){
+#Charts distibutions of times at given split (split being distance on course). 
+  #Inputs:
+    #Dist.List: List of times each of the 18 corrals starts. 
+    #Split.Mean.List: List (4) of Means for distribution of times for each wave for the given split. 
+    #Split.SD.List: List (4) of SDs for distribution of times for each wave for the given split.   
+  
+  
+df.list <- c("df.1","df.2","df.3","df.4","df.5","df.6","df.7","df.8","df.9","df.10","df.11","df.12","df.13","df.14","df.15","df.16","df.17","df.18","df.19","df.20","df.21","df.22","df.23","df.24")
+
+wave.list <-c("W1C1","W1C2","W1C3","W1C4","W1C5","W1C6","W2C1","W2C2","W2C3","W2C4","W2C5","W2C6","W3C1","W3C2","W3C3","W3C4","W3C5","W3C6","W4C1","W4C2","W4C3","W4C4","W4C5","W4C6")
+
+Split.Mean.W <- c(Split.Mean.List[1],Split.Mean.List[1],Split.Mean.List[1],Split.Mean.List[1],Split.Mean.List[1],Split.Mean.List[1],Split.Mean.List[2],Split.Mean.List[2],Split.Mean.List[2],Split.Mean.List[2],Split.Mean.List[2],Split.Mean.List[2],Split.Mean.List[3],Split.Mean.List[3],Split.Mean.List[3],Split.Mean.List[3],Split.Mean.List[3],Split.Mean.List[3],Split.Mean.List[4],Split.Mean.List[4],Split.Mean.List[4],Split.Mean.List[4],Split.Mean.List[4],Split.Mean.List[4])
+
+Split.SD.W <- c(Split.SD.List[1],Split.SD.List[1],Split.SD.List[1],Split.SD.List[1],Split.SD.List[1],Split.SD.List[1],Split.SD.List[2],Split.SD.List[2],Split.SD.List[2],Split.SD.List[2],Split.SD.List[2],Split.SD.List[2],Split.SD.List[3],Split.SD.List[3],Split.SD.List[3],Split.SD.List[3],Split.SD.List[3],Split.SD.List[3],Split.SD.List[4],Split.SD.List[4],Split.SD.List[4],Split.SD.List[4],Split.SD.List[4],Split.SD.List[4])
+
+for(i in 1:24){  
+  assign(df.list[i], data.frame(rnorm(eval(as.name(paste(wave.list[i],"_Size",sep=""))),mean = Split.Mean.W[i]/60, sd=Split.SD.W[i]/60)+Dist.List[i], wave.list[i]))
+}
+       
+df.all <- data.frame()
+df.all <- get(df.list[1])
+names(df.all) <- c("Split","W_C")
+x <- data.frame()
+        
+for(i in 2:24){
+  x <- get(df.list[i])
+  names(x)<-c("Split","W_C")
+  df.all <- rbind(df.all,x)  
+  
+}
+
+df.all$Distance <- Distance
+
+assign("df.test",df.all, envir = .GlobalEnv)
+
+#While our later Viz will use counts insted of density, we will use density in this Viz so we can see waves more easily when viewing one split. 
+
+ggplot(df.all, aes(y = ..density.., x=Split, fill=W_C)) + 
+  geom_histogram(alpha=.7, bins = 100) + theme(legend.position = "none") + geom_density(alpha=.5) + ggtitle(title)
+}
+
+```
+
+The above function take a list of Means and a list of Standard Deviations. Each list consists of a Mean or SD for each of the 4 waves. It makes sense to now store these as variables so we can better use the above function. As a quick reminder, the variables we are inserting into this list have already been scaled as planned above (80% of the SD for Wave  1 and Wave  2). 
+
+```{r}
+TenK_Mean <- c(W1_10K_Mean_Norm,W2_10K_Mean_Norm,W3_10K_Mean_Norm,W4_10K_Mean_Norm)
+TenK_SD <- c(W1_10K_SD_Norm,W2_10K_SD_Norm,W3_10K_SD_Norm,W4_10K_SD_Norm)
+
+Half_Mean <- c(W1_HALF_Mean_Norm,W2_HALF_Mean_Norm,W3_HALF_Mean_Norm,W4_HALF_Mean_Norm)
+Half_SD <- c(W1_HALF_SD_Norm,W2_HALF_SD_Norm,W3_HALF_SD_Norm,W4_HALF_SD_Norm)
+
+ThirtyK_Mean <- c(W1_30K_Mean_Norm,W2_30K_Mean_Norm,W3_30K_Mean_Norm,W4_30K_Mean_Norm)
+ThirtyK_SD <- c(W1_30K_SD_Norm,W2_30K_SD_Norm,W3_30K_SD_Norm,W4_30K_SD_Norm)
+
+Mar_Mean <- c(W1_MAR_Mean_Norm,W2_MAR_Mean_Norm,W3_MAR_Mean_Norm,W4_MAR_Mean_Norm)
+Mar_SD <- c(W1_MAR_SD_Norm,W2_MAR_SD_Norm,W3_MAR_SD_Norm,W4_MAR_SD_Norm)
+```
+
+Testing **Simulate_Race_Viz** for the 10K split and the start times from the 2019 Marathon:
+
+```{r}
+set.seed(4152)
+
+k <- c(0,1,2,3.4,5,6,29,30,32,34,35,36,55,56,57,58,59,60,80,81,82,83,84,85)
+Simulate_Race_Viz(k,TenK_Mean,TenK_SD,"10K","10K Runner Traffic - 2019 NYC Marathon Start Times")
+```
+
+This is largely what we would expect to see. The waves are still mostly isolated at only 6 miles into the  race. 
+
+With this being tested, we can now build a larger function titled **Simulate_Race_Viz_All** which calls our **Simulate_Race_Viz** function once for 4 points on course. Since we will only be using this for simulating the full race, we can "hard code" the above variables into the bigger formula, and keep the start times (dist_list), file name and title as our only variables. 
+
+```{r}
+Simulate_Race_Viz_All <- function(Dist.List,title, Output_Df_Name){
+#Charts distibutions of times at all splits (split being distance on course) - Start, 10k, half, 30k and the full race. 
+  #Inputs:
+    #Dist.List: List of times each of the 24 corrals starts. 
+    #Title: Title of GGplot output
+    #Output_Df_Name: Name for DF during export.    
+  
+  
+df.list <- c("df.1","df.2","df.3","df.4","df.5","df.6","df.7","df.8","df.9","df.10","df.11","df.12","df.13","df.14","df.15","df.16","df.17","df.18","df.19","df.20","df.21","df.22","df.23","df.24")
+
+wave.list <-c("W1C1","W1C2","W1C3","W1C4","W1C5","W1C6","W2C1","W2C2","W2C3","W2C4","W2C5","W2C6","W3C1","W3C2","W3C3","W3C4","W3C5","W3C6","W4C1","W4C2","W4C3","W4C4","W4C5","W4C6")
+
+distance.list <- c("Start","10K","HALF","30K","MAR")
+
+for(i in 1:24){  
+  assign(df.list[i], data.frame(rnorm(eval(as.name(paste(wave.list[i],"_Size",sep=""))),mean = 0, sd= .3)+Dist.List[i], wave.list[i],distance.list[1]))
+}
+       
+df.all <- data.frame()
+df.all <- get(df.list[1])
+names(df.all) <- c("Split","W_C","Distance")
+x <- data.frame()
+        
+for(i in 2:24){
+  x <- get(df.list[i])
+  names(x)<-c("Split","W_C","Distance")
+  df.all <- rbind(df.all,x)  
+  
+}
+
+Simulate_Race_Viz(Dist.List,TenK_Mean,TenK_SD,"10K",title)
+assign("df.10k",df.test)
+df.all <- rbind(df.all,df.test)
+
+Simulate_Race_Viz(Dist.List,Half_Mean,Half_SD,"Half",title)
+df.all <- rbind(df.all,df.test)
+
+Simulate_Race_Viz(Dist.List,ThirtyK_Mean,ThirtyK_SD,"30K",title)
+df.all <- rbind(df.all,df.test)
+
+Simulate_Race_Viz(Dist.List,Mar_Mean,Mar_SD,"Mar",title)
+df.all <- rbind(df.all,df.test)
+
+
+assign(Output_Df_Name,df.all, envir = .GlobalEnv)
+
+
+plot1 <- 
+  ggplot(subset(df.all, Distance == "Start"), aes(x=Split, fill=W_C)) + 
+  geom_histogram(alpha=.7, binwidth = 1) + theme(legend.position = "none") + geom_density(alpha=.5) + facet_wrap(~Distance, ncol = 1,scales = "free_x")+ ggtitle(title)
+
+plot2 <-
+ggplot(subset(df.all, Distance != "Start"), aes(x=Split, fill=W_C)) + 
+  geom_histogram(alpha=.7, binwidth = 1) + theme(legend.position = "none") + geom_density(alpha=.5) + facet_wrap(~Distance, ncol = 1,scales = "free_x")+ ggtitle(title)
+
+return(list(plot1,plot2))
+}
+
+```
+
+We can test with a simulation of the 2019 Marathon, using estimated start times and the sample Mean and SD per wave and distance. 
+
+```{r}
+set.seed(4152)
+
+Simulate_Race_Viz_All(c(0,1,2,3.4,5,6,29,30,32,34,35,36,55,56,57,58,59,60,80,81,82,83,84,85),"2019 Start Times - Simulated","2019_Simulated_Df")
+```
+
+While the plot we build for each individual wave was a density histogram with individual waves illustrated, for the purposes of this plot, it makes more sense to use a frequency histogram. We can see how the runner congestion decreases as the race progresses. 
+
+## Validate Model
+
+Now that we have functions to simulate and visualize both our simulated and the actual race, we can validate our model. A valid model will have our simulated race appear very similar to the actual race. While we do have some limitations - our distributions are only approximations of the actual race, if the simulation is mostly similar to the actual race, we can use our model to optimize starting times for minimal runner traffic. 
+
+In each of our visualization functions, **Simulate_Race_Viz_All** and **Actual_Performance_Viz**, we export our results as a df to the Global Environment under a variable name of our choosing. We can build a function titled **Compare_Actual_Performances** to use these data frames and compare these findings in the same plot. 
+
+```{r}
+Compare_Actual_Performances <- function(Results_DF_1, Results_DF_2, Name_1, Name_2,title){
+
+Results_DF_1$Set <- Name_1
+Results_DF_2$Set <- Name_2
+Both_Df <- rbind(Results_DF_1, Results_DF_2)
+
+ggplot(subset(Both_Df, Distance == "Start"), aes(y=..density..,x=Split, fill=Set)) + 
+  geom_histogram(position="identity", alpha=.7, binwidth = 1)  + geom_density(alpha=.5) + facet_wrap(~Distance, ncol = 1,scales = "free_x")+ ggtitle("title")
+
+Both_Df$Distance <- factor(Both_Df$Distance, levels = c("Start","10K", "Half", "30K", "Mar"))
+
+ggplot(subset(Both_Df, Distance != "Start"), aes(x=Split, fill=Set)) + 
+  geom_histogram(position="dodge", alpha=.7, binwidth = 1) + geom_density(alpha=.5) + facet_wrap(~Distance, ncol = 1,scales = "free_x")+ ggtitle(title)
+
+}
+```
+
+Now we can see if our model is valid: 
+```{r}
+Compare_Actual_Performances(`2019_Simulated_Df`,`2019_Actual_Df`,"Sim","Actual","2019 sim vs actual")
+```
+
+With our histograms on the same plot, we can really see the skew in the 10k interval. Additionally, the actual data at the half marathon split has more runners at the mean and fewer at the tails. For some purposes, we might want to explore other distributions to minimize the differences between the simulation and the actual data, but for our purposes, these are small compared to the strength of the model as a whole.
+
+We can also compare the highest points in our simulated and actual data to get a sense of scale: 
+
+```{R}
+`2019_Simulated_Df`$Set = "Sim"
+`2019_Actual_Df`$Set = "Actual"
+
+`2019_Both_Df` <- rbind(`2019_Simulated_Df`,`2019_Actual_Df`)
+
+subset(`2019_Both_Df`,Distance!="Start") %>%
+	group_by(Set, Wave = substr(W_C,1,2),Split = floor(Split),Distance) %>%
+	summarise(Count = n()) %>%
+  group_by(Distance,Wave, Set) %>%
+  summarise(Count = max(Count)) %>%
+  pivot_wider(names_from = Set, values_from = Count)
+
+
+`2019_Both_Df` %>%
+  group_by(Split = floor(Split),Distance,Set) %>%
+  summarise(Count = n())  %>%
+  group_by(Distance,Set) %>%
+  summarise(Avg_Traffic = mean(Count))%>%
+  pivot_wider(names_from = Set, values_from = Avg_Traffic)
+
+
+`2019_Both_Df` %>%
+  group_by(Split = floor(Split),Distance,Set) %>%
+  summarise(Count = n())  %>%
+  group_by(Distance,Set) %>%
+  summarise("Avg_Runners/minute" = mean(Count),"Range_of_Runners/minute"= (max(Count)-min(Count)), "SD_Runners/minute" = sd(Count))
+
+
+```
+
+Again, the model is valid for our purposes. 
+
+# Optimize Starting Times 
+
+Now that we are confident that our simulation approximates the actual behavior of runners, we can write a function to measure "traffic" or "congestion" on course and describe this with a numerical value. Once we have this "traffic score", we can minimize it and optimize start times for minimal traffic. 
+
+The function below titled **Get_Traffic_Score** takes the Standard Distribution and Mean of our previously described distributions (unique to each distance and wave) and calculates the number of runners to pass a given point on the course each minute from when the race starts till the course closes (500 minutes; ~8 hours after the start). By squaring this value for each minute before summing them across the duration the course is open, we can more heavily weight crowded times on the course and compare different race conditions. 
+
+Though the number itself is fairly arbitrary, for a fixed number of participants, a higher value indicates a race that is "more crowded" at various times. Minimizing this value results in a more evenly distributed race. 
+
+## Optimize for one split 
+
+Lets start by building our function and then optimizing the starting times for minimal runner traffic at the 10k mark. 
+
+```{r}
+Get.Traffic.Score <- function(Dist.List,Split.Mean.List,Split.SD.List){
+#Formula to be used in Optimization Function
+#Using Disitributions of times each wave will get to a given split (distnace on course), and the amount of time each wave waits at starting line, calculates density of runners through split at each minute of the race. 
+#Traffic score is calcualted by summing the density of runners (calc by Dnorm) SQUARED through split at each minute. 
+  
+  #Inputs:
+    #Dist.List: List (24) of times for each Wave to start race. 
+    #Split.Mean.List: List(4) of Means to describe distributoin of runners from each wave through a given split (race distance)
+    #Split.SD.List: List (4) of SDs to describe distribution of runners from each wave through  a given split. 
+
+Split.Mean.W <- c(Split.Mean.List[1],Split.Mean.List[1],Split.Mean.List[1],Split.Mean.List[1],Split.Mean.List[1],Split.Mean.List[1],Split.Mean.List[2],Split.Mean.List[2],Split.Mean.List[2],Split.Mean.List[2],Split.Mean.List[2],Split.Mean.List[2],Split.Mean.List[3],Split.Mean.List[3],Split.Mean.List[3],Split.Mean.List[3],Split.Mean.List[3],Split.Mean.List[3],Split.Mean.List[4],Split.Mean.List[4],Split.Mean.List[4],Split.Mean.List[4],Split.Mean.List[4],Split.Mean.List[4])
+
+Split.SD.W <- c(Split.SD.List[1],Split.SD.List[1],Split.SD.List[1],Split.SD.List[1],Split.SD.List[1],Split.SD.List[1],Split.SD.List[2],Split.SD.List[2],Split.SD.List[2],Split.SD.List[2],Split.SD.List[2],Split.SD.List[2],Split.SD.List[3],Split.SD.List[3],Split.SD.List[3],Split.SD.List[3],Split.SD.List[3],Split.SD.List[3],Split.SD.List[4],Split.SD.List[4],Split.SD.List[4],Split.SD.List[4],Split.SD.List[4],Split.SD.List[4])
+  
+  traffic.score = 0
+  traffic.per.wave = vector()
+  
+  #Range of minutes:
+  for(i in 1:500){
+    for(j in 1:24){    
+      traffic.per.wave[j] = dnorm(i-Dist.List[[j]],mean = Split.Mean.W[j]/60,sd = Split.SD.W[j]/60)
+    }
+    
+    traffic.score.minute = sum(traffic.per.wave)
+    traffic.score = traffic.score + traffic.score.minute^2  
+  
+  }
+  return (traffic.score)
+}
+```
+
+Testing our formula across 10 minutes intervals: 
+
+```{r}
+set.seed(4152)
+
+a = list(0,10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,200,210,220,230,240)
+
+Get.Traffic.Score(a,TenK_Mean,TenK_SD)
+```
+
+We can use the Optim function to minimize this and find ideal corral start times. For consistencies sake, we will set the limits to the length the 2019 start line was open.  
+
+```{r}
+set.seed(4152)
+
+Corral_Time_10K <- optim(par = c(6, 12, 18, 24, 30, 36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54), fn = Get.Traffic.Score,Split.Mean.List = TenK_Mean,Split.SD.List=TenK_SD, lower=0, upper=80)
+Corral_Time_10K
+```
+
+**Quick reminder, we have split our 50k+ runners into 24 groups. These are effectively the "old" wave and corral groupings. We can imagine around 700 runners starting from each of our 3 starting lines at the same time at various intervals.** The optimal starting times are listed as the par values in the optim output. 
+
+If our goal is to minimize traffic on course, then starting the first 4 and final 4 waves of runners together seems counter intuitive. To illustrate what is occurring here, lets use our **Simulate_Race_Viz** function to see what is going on here. Lets compare our ideal start times to those that are evenly distributed. 
+
+```{r}
+set.seed(4152)
+
+Simulate_Race_Viz(unlist(Corral_Time_10K$par),TenK_Mean,TenK_SD,"10K","10K Runner Traffic - Optimal Times")
+
+j <- c(3.3, 6.6, 10, 13.3, 16.6, 20, 23.3, 26.6, 30,33.3,36.6,40,43.3,46.6,50,53.3,56.6,60,63.3,66.6,70,73.3,76.6,80 )
+Simulate_Race_Viz(j,TenK_Mean,TenK_SD,"10K","10K Runner Traffic - Evenly Distributed Times")
+```
+
+By "front loading" and "back loading" the field - we allow the field to spread across a longer period of time than if we had the groups start in even intervals. Additionally, the  ideal distribution is "out of order" in some cases - starting slower waves before quicker ones, to reduce the "peaks and valleys" we see in the evenly distributed visualization. 
+
+## Optimize for Entire Race (4 splits)
+
+We can write a function called **Get.Traffic.Score.All** which pulls our **Get.Traffic.Score** for each of our 4 distances across the race (10K, Half, 30K and the full distance). While each of these are equally weighted, because we are squaring the value which represents congestion on course, we will naturally more heavily weight the earlier splits, as the Standard Deviation is lower at this point in the race and congestion is higher. 
+
+```{r}
+Get.Traffic.Score.Race <- function(Dist.List,Split.Mean.List.1,Split.Mean.List.2,Split.Mean.List.3,Split.Mean.List.4,Split.SD.List.1,Split.SD.List.2,Split.SD.List.3,Split.SD.List.4){
+  #Calculates Traffic Score across entire race.
+  #Inputs:
+    #Dist.List: list(18) of starting times for each corral 
+    #Split.Mean.List1-4 = List(4) of Means of distribution describing times each wave of runners will get to the first of 4 "splits" (distances on course) we will be measuring. 1=10K, 2= Half, 3=30K, 4=Full Marathon. 
+    #Split.SD.List1-4 = List(4) of SDs of distribution describing times each wave of runners will get to the first of 4 "splits" (distances on course) we will be measuring. 1=10K, 2= Half, 3=30K, 4=Full Marathon. 
+  
+  TS1 = Get.Traffic.Score(Dist.List,Split.Mean.List.1,Split.SD.List.1)
+  TS2 = Get.Traffic.Score(Dist.List,Split.Mean.List.2,Split.SD.List.2)
+  TS3 = Get.Traffic.Score(Dist.List,Split.Mean.List.3,Split.SD.List.3)
+  TS4 = Get.Traffic.Score(Dist.List,Split.Mean.List.4,Split.SD.List.4)
+  
+  return(TS1+TS2+TS3+TS4)
+  
+}
+
+```
+
+Again, testing for 10 minute intervals: 
+
+```{r}
+a = list(0,10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,200,210,220,230,240)
+
+Get.Traffic.Score.Race(a,TenK_Mean,TenK_SD,Half_Mean,Half_SD,ThirtyK_Mean,ThirtyK_SD,Mar_Mean,Mar_SD)
+
+```
+
+Lets see what an optimal set of starting times might look like: 
+```{r}
+set.seed(4152)
+
+Corral_Time_FullRace <- optim(par = c(6, 12, 18, 24, 30, 36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54), fn = Get.Traffic.Score.Race,
+Split.Mean.List.1 = TenK_Mean,
+Split.Mean.List.2 = Half_Mean,
+Split.Mean.List.3=ThirtyK_Mean,
+Split.Mean.List.4=Mar_Mean, 
+Split.SD.List.1=TenK_SD,
+Split.SD.List.2=Half_SD,
+Split.SD.List.3=ThirtyK_SD,
+Split.SD.List.4=Mar_SD, 
+lower=0, upper=80)
+
+Corral_Time_FullRace
+```
+
+Again we find that it is optimal to have multiple waves starting at the same time. When thinking about the use case of this information, it still seems illogical to have this much  congestion in the first few miles of the race - even if it yields a more even flow of runners later on. As we reflect on our ultimate goal - one oversight comes into  focus: we need to account for congestion at the starting line in addition to the points on course. 
+
+## Build Starting Line Model 
+
+While we used distributions unique to each wave to model the volume of runners for each split on course, the starting line does not need to be as exact. That being said, we will need to get creative to have the optimization function work as intended. Ideally, we would use a uniform distribution to capture the start, however, the optim function does not behave well with  discreet variables and will return an error if it does not see incremental changes in our objective value for incremental changes in parameter variables. As a result, we will use a normal distribution for starting corrals even though it does not reflect runner behavior. 
+
+To best capture the full minute it takes the sub-group to cross the start line, we would expect to see a SD of ~.3 . Such a low SD, however, has extremely small values at its tails - as our traffic score function is only taking readings at each  minute interval, the optim function would likely return values slightly higher or lower than the whole numbers and receive a very small traffic score in response. A SD of 1 will create a histogram that will likely yield better results in our optim function, however, it would also return comparatively lower values in our Dnorm function than what we would expect to see. We can fix this by changing our weighting. 
+
+Now is a good time to note that at the NYC marathon the 3 starting lines run separate courses till mile 3. As a result, we will would normally divide the density by 3 before squaring so it is weighted correctly when compared to later points on course when the 3 start lines are joined. As we need to increase the weighting in this case to compensate for the larger SD, we will divide by 2 instead. 
+
+Finally, instead of the "correct" 0, we will use a normal distribution with a mean of 25 to model starting line traffic. Our reasons for selecting a mean of 25 is so that there is no chance that any volume of runners will pass through the starting line "before minute 0" as this will result in the optimization function prioritizing lower starting times. 
+
+```{r}
+Get.Traffic.Score.Start <- function(Dist.List){
+
+  traffic.score = 0
+  traffic.per.wave = vector()
+  
+  #Range of minutes:
+  for(i in 1:500){
+    for(j in 1:24){    
+      traffic.per.wave[j] = dnorm(i-(Dist.List[[j]]),mean=25,sd=1)/2
+      #traffic.per.wave[j] = dunif(i,Dist.List[[j]],Dist.List[[j]]+1)
+    }
+    
+    traffic.score.minute = sum(traffic.per.wave)
+    traffic.score = traffic.score + (traffic.score.minute^2)  
+  
+  }
+  return (traffic.score)
+}
+```
+
+Lets run a test, and optimize waves to minimize traffic at the starting line. We would expect to see the  waves relatively evenly distributed. 
+
+```{r}
+set.seed(4152)
+
+start <- optim(par = c(0,3,6,9,12,15,18,21,24,27,30,33,36,39,42,45,48,51,54,57,60,63,67,70),fn = Get.Traffic.Score.Start,lower=0, upper=80)
+start
+```
+The above values are virtually exactly what we would expect. 
+
+## Simulate Entire Race (4 splits + start)
+
+With this working correctly, we can adjust our function and optimize traffic for the full race: 
+
+```{R}
+Get.Traffic.Score.Race <- function(Dist.List,Split.Mean.List.1,Split.Mean.List.2,Split.Mean.List.3,Split.Mean.List.4,Split.SD.List.1,Split.SD.List.2,Split.SD.List.3,Split.SD.List.4){
+  #Calculates Traffic Score across entire race.
+  #Inputs:
+    #Dist.List: list(18) of starting times for each corral 
+    #Split.Mean.List1-4 = List(4) of Means of distribution describing times each wave of runners will get to the first of 4 "splits" (distances on course) we will be measuring. 1=10K, 2= Half, 3=30K, 4=Full Marathon. 
+    #Split.SD.List1-4 = List(4) of SDs of distribution describing times each wave of runners will get to the first of 4 "splits" (distances on course) we will be measuring. 1=10K, 2= Half, 3=30K, 4=Full Marathon. 
+  
+  TS0 = Get.Traffic.Score.Start(Dist.List)
+  TS1 = Get.Traffic.Score(Dist.List,Split.Mean.List.1,Split.SD.List.1)
+  TS2 = Get.Traffic.Score(Dist.List,Split.Mean.List.2,Split.SD.List.2)
+  TS3 = Get.Traffic.Score(Dist.List,Split.Mean.List.3,Split.SD.List.3)
+  TS4 = Get.Traffic.Score(Dist.List,Split.Mean.List.4,Split.SD.List.4)
+  
+  return(TS0+TS1+TS2+TS3+TS4)
+  
+}
+
+```
+
+```{r}
+set.seed(4152)
+
+Corral_Time_FullRace.1 <- optim(par =c(3.3, 6.6, 10, 13.3, 16.6, 20, 23.3, 26.6, 30,33.3,36.6,40,43.3,46.6,50,53.3,56.6,60,63.3,66.6,70,73.3,76.6,80 ), fn = Get.Traffic.Score.Race,
+Split.Mean.List.1 = TenK_Mean,
+Split.Mean.List.2 = Half_Mean,
+Split.Mean.List.3=ThirtyK_Mean,
+Split.Mean.List.4=Mar_Mean, 
+Split.SD.List.1=TenK_SD,
+Split.SD.List.2=Half_SD,
+Split.SD.List.3=ThirtyK_SD,
+Split.SD.List.4=Mar_SD, 
+lower=0, upper=80)
+
+Corral_Time_FullRace.1
+```
+# Verify Model
+
+With an optimal set of starting times, we can nest our **Compare_Actual_Performances** function in a new function called **Alternate_Start_Viz** which will calculate new splits based on the actual performances of our 2019 runners had they run the exact race with a new starting time before providing a visual to compare the race traffic. We will also have it return some statistics to describe race traffic in either starting scheme. 
+
+As we will only be comparing 2019 actual performances to alternate 2019 performances with different starting times, we can hard-code a few of our variables. 
+
+
+```{r}
+#Remove Pro Runners
+Clean_Results3$W_C <- substr(Clean_Results3$CorWrap,1,4)
+```
+```{r}
+Alternate_Start_Viz <- function(optim_results_name, label_name, final_plot_title){
+  #Simulates 2019 race if our actual runners ran an identical race with different starting times. 
+  #Inputs:
+    #Optim_Results_Name - name of optim function whoose results we used to determin starting times.
+    #label name: name of label for plot. Also used in naming DF. 
+    #Final_Plot_title: name of title of final vizualation. 
+
+W_C_List <- c("W1C1","W1C2","W1C3","W1C4","W1C5","W1C6","W2C1","W2C2","W2C3","W2C4","W2C5","W2C6","W3C1","W3C2","W3C3","W3C4","W3C5","W3C6","W4C1","W4C2","W4C3","W4C4","W4C5","W4C6")
+
+#Remove an existing "Start_Time_New" field should it exist. 
+Clean_Results3 <- Clean_Results3[,!colnames(Clean_Results3) == "Start_Time_New"]
+
+#Pair start times with corral names - inner join with results DF
+Start_DF <- data.frame(W_C_List, unlist(optim_results_name$par))
+names(Start_DF) <- c("W_C","Start_Time_New")
+Clean_Results3 <- inner_join(Clean_Results3,Start_DF)
+
+#Save as global variable. 
+assign("Clean_Results3",Clean_Results3,.GlobalEnv)
+
+#run simulation - vizualtion will not be generated
+Actual_Performance_Viz("Start_Time_New", paste(label_name,"_resultsDF", sep=""), "title")
+
+#Save as results variable 
+assign(paste(label_name,"_resultsDF2",sep=""),get(paste(label_name,"_resultsDF",sep="")),envir = .GlobalEnv)
+
+#Generate Vizual comparaing race traffic
+Item1 = Compare_Actual_Performances(get(paste(label_name,"_resultsDF", sep="")),`2019_Actual_Df`,label_name,"Actual",final_plot_title) 
+
+#assign resuts DF to its own varaible for ease of use 
+new_data = get(paste(label_name,"_resultsDF", sep=""))
+
+#Generate Statistics: 
+new_data[,"Set"]<- label_name
+`2019_Actual_Df`[,"Set"]<-"2019 Actual"
+
+Both_Df <- rbind(new_data,`2019_Actual_Df`)
+
+Both_Df$Distance <- factor(Both_Df$Distance, levels = c("Start","10K","Half","30K","Mar"))
+
+Item2 = subset(Both_Df,Distance!="Start") %>%
+  group_by(Split = floor(Split),Distance,Set) %>%
+  summarise(Count = n())  %>%
+  group_by(Distance,Set) %>%
+  summarise(Avg_Traffic = mean(Count),Max_Traffic = max(Count), SD_Traffic = sd(Count)) %>%
+  arrange(Distance,Set)
+
+return(list(Item1,Item2))
+
+}
+```
+
+## Actual Start Times vs Optimal Start Times
+With the function built - lets compare optimal vs actual start times.  
+
+```{r}
+Alternate_Start_Viz(Corral_Time_FullRace.1,"80 Minute Start, Optimal","Optimal 80 Min Start vs Actual 2019")
+
+```
+
+## ... vs Optimal Start Times over 2 hours.  
+
+Since we have a function built, we can easily compare other starting schemes as well. Let optimize over a 2 hour period (vs the 80 minutes the 2019 race utilized)
+
+```{r}
+set.seed(4152)
+
+Corral_Time_FullRace.2hrs <- optim(par =c(5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100,105,110,115,120 ), fn = Get.Traffic.Score.Race,
+Split.Mean.List.1 = TenK_Mean,
+Split.Mean.List.2 = Half_Mean,
+Split.Mean.List.3=ThirtyK_Mean,
+Split.Mean.List.4=Mar_Mean, 
+Split.SD.List.1=TenK_SD,
+Split.SD.List.2=Half_SD,
+Split.SD.List.3=ThirtyK_SD,
+Split.SD.List.4=Mar_SD, 
+lower=0, upper=120)
+
+Alternate_Start_Viz(Corral_Time_FullRace.2hrs,"2hr Start, Optimal","Optimal 2hr Start vs Actual 2019")
+```
+## ... vs Optimal Start Times over 3 hours. 
+
+Finally, lets see how race traffic is impacted when the starting line is open for 3 hours (more than twice as long as it was in 2019).
+
+```{r}
+set.seed(4152)
+
+Corral_Time_FullRace.3hrs <- optim(par =c(3.3, 6.6, 10, 13.3, 16.6, 20, 23.3, 26.6, 30,33.3,36.6,40,43.3,46.6,50,53.3,56.6,60,63.3,66.6,70,73.3,76.6,80 ), fn = Get.Traffic.Score.Race,
+Split.Mean.List.1 = TenK_Mean,
+Split.Mean.List.2 = Half_Mean,
+Split.Mean.List.3=ThirtyK_Mean,
+Split.Mean.List.4=Mar_Mean, 
+Split.SD.List.1=TenK_SD,
+Split.SD.List.2=Half_SD,
+Split.SD.List.3=ThirtyK_SD,
+Split.SD.List.4=Mar_SD, 
+lower=0, upper=180)
+
+Alternate_Start_Viz(Corral_Time_FullRace.3hrs,"3hr Start, Optimal","Optimal 3hr Start vs Actual 2019")
+```
+
+# Closing Thoughts 
+
+
+
+
