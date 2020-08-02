@@ -1,4 +1,4 @@
-,race,position,number,Driver,original_team_name,laps,secs,points,year
+,race,position,number,Driver,original_team_name,laps,secs,not sure,year
 1,"Melbourne Grand Prix Circuit, Australia",1,22,BUT,Brawn Mercedes,58,34:15.8,10,2009
 2,"Melbourne Grand Prix Circuit, Australia",2,23,BAR,Brawn Mercedes,58,+0.807s,8,2009
 3,"Melbourne Grand Prix Circuit, Australia",3,9,TRU,Toyota,58,+1.604s,6,2009
@@ -2864,26 +2864,26 @@
 2863,"Circuit of The Americas, Austin",NC,8,GRO,Lotus Mercedes,10,DNF,0,2015
 2864,"Circuit of The Americas, Austin",NC,77,BOT,Williams Mercedes,5,DNF,0,2015
 2865,"Circuit of The Americas, Austin",NC,28,STE,Marussia Ferrari,1,DNF,0,2015
-2866,"Autodromo Hermanos Rodríguez, Mexico City",1,6,ROS,Mercedes,71,42:35.0,25,2015
-2867,"Autodromo Hermanos Rodríguez, Mexico City",2,44,HAM,Mercedes,71,+1.954s,18,2015
-2868,"Autodromo Hermanos Rodríguez, Mexico City",3,77,BOT,Williams Mercedes,71,+14.592s,15,2015
-2869,"Autodromo Hermanos Rodríguez, Mexico City",4,26,KVY,Red Bull Racing Renault,71,+16.572s,12,2015
-2870,"Autodromo Hermanos Rodríguez, Mexico City",5,3,RIC,Red Bull Racing Renault,71,+19.682s,10,2015
-2871,"Autodromo Hermanos Rodríguez, Mexico City",6,19,MAS,Williams Mercedes,71,+21.493s,8,2015
-2872,"Autodromo Hermanos Rodríguez, Mexico City",7,27,HUL,Force India Mercedes,71,+25.860s,6,2015
-2873,"Autodromo Hermanos Rodríguez, Mexico City",8,11,PER,Force India Mercedes,71,+34.343s,4,2015
-2874,"Autodromo Hermanos Rodríguez, Mexico City",9,33,VER,STR Renault,71,+35.229s,2,2015
-2875,"Autodromo Hermanos Rodríguez, Mexico City",10,8,GRO,Lotus Mercedes,71,+37.934s,1,2015
-2876,"Autodromo Hermanos Rodríguez, Mexico City",11,13,MAL,Lotus Mercedes,71,+38.538s,0,2015
-2877,"Autodromo Hermanos Rodríguez, Mexico City",12,9,ERI,Sauber Ferrari,71,+40.180s,0,2015
-2878,"Autodromo Hermanos Rodríguez, Mexico City",13,55,SAI,STR Renault,71,+48.772s,0,2015
-2879,"Autodromo Hermanos Rodríguez, Mexico City",14,22,BUT,McLaren Honda,71,+49.214s,0,2015
-2880,"Autodromo Hermanos Rodríguez, Mexico City",15,53,RSI,Marussia Ferrari,69,+2 laps,0,2015
-2881,"Autodromo Hermanos Rodríguez, Mexico City",16,28,STE,Marussia Ferrari,69,+2 laps,0,2015
-2882,"Autodromo Hermanos Rodríguez, Mexico City",NC,12,NAS,Sauber Ferrari,57,DNF,0,2015
-2883,"Autodromo Hermanos Rodríguez, Mexico City",NC,5,VET,Ferrari,50,DNF,0,2015
-2884,"Autodromo Hermanos Rodríguez, Mexico City",NC,7,RAI,Ferrari,21,DNF,0,2015
-2885,"Autodromo Hermanos Rodríguez, Mexico City",NC,14,ALO,McLaren Honda,1,DNF,0,2015
+2866,"Autodromo Hermanos Rodriguez, Mexico City",1,6,ROS,Mercedes,71,42:35.0,25,2015
+2867,"Autodromo Hermanos Rodriguez, Mexico City",2,44,HAM,Mercedes,71,+1.954s,18,2015
+2868,"Autodromo Hermanos Rodriguez, Mexico City",3,77,BOT,Williams Mercedes,71,+14.592s,15,2015
+2869,"Autodromo Hermanos Rodriguez, Mexico City",4,26,KVY,Red Bull Racing Renault,71,+16.572s,12,2015
+2870,"Autodromo Hermanos Rodriguez, Mexico City",5,3,RIC,Red Bull Racing Renault,71,+19.682s,10,2015
+2871,"Autodromo Hermanos Rodriguez, Mexico City",6,19,MAS,Williams Mercedes,71,+21.493s,8,2015
+2872,"Autodromo Hermanos Rodriguez, Mexico City",7,27,HUL,Force India Mercedes,71,+25.860s,6,2015
+2873,"Autodromo Hermanos Rodriguez, Mexico City",8,11,PER,Force India Mercedes,71,+34.343s,4,2015
+2874,"Autodromo Hermanos Rodriguez, Mexico City",9,33,VER,STR Renault,71,+35.229s,2,2015
+2875,"Autodromo Hermanos Rodriguez, Mexico City",10,8,GRO,Lotus Mercedes,71,+37.934s,1,2015
+2876,"Autodromo Hermanos Rodriguez, Mexico City",11,13,MAL,Lotus Mercedes,71,+38.538s,0,2015
+2877,"Autodromo Hermanos Rodriguez, Mexico City",12,9,ERI,Sauber Ferrari,71,+40.180s,0,2015
+2878,"Autodromo Hermanos Rodriguez, Mexico City",13,55,SAI,STR Renault,71,+48.772s,0,2015
+2879,"Autodromo Hermanos Rodriguez, Mexico City",14,22,BUT,McLaren Honda,71,+49.214s,0,2015
+2880,"Autodromo Hermanos Rodriguez, Mexico City",15,53,RSI,Marussia Ferrari,69,+2 laps,0,2015
+2881,"Autodromo Hermanos Rodriguez, Mexico City",16,28,STE,Marussia Ferrari,69,+2 laps,0,2015
+2882,"Autodromo Hermanos Rodriguez, Mexico City",NC,12,NAS,Sauber Ferrari,57,DNF,0,2015
+2883,"Autodromo Hermanos Rodriguez, Mexico City",NC,5,VET,Ferrari,50,DNF,0,2015
+2884,"Autodromo Hermanos Rodriguez, Mexico City",NC,7,RAI,Ferrari,21,DNF,0,2015
+2885,"Autodromo Hermanos Rodriguez, Mexico City",NC,14,ALO,McLaren Honda,1,DNF,0,2015
 2886,"Autodromo Jose Carlos Pace, Sao Paulo",1,6,ROS,Mercedes,71,31:09.1,25,2015
 2887,"Autodromo Jose Carlos Pace, Sao Paulo",2,44,HAM,Mercedes,71,+7.756s,18,2015
 2888,"Autodromo Jose Carlos Pace, Sao Paulo",3,5,VET,Ferrari,71,+14.244s,15,2015
@@ -3320,28 +3320,28 @@
 3319,"Circuit of The Americas, Austin",NC,33,VER,Red Bull Racing TAG Heuer,28,DNF,0,2016
 3320,"Circuit of The Americas, Austin",NC,21,GUT,Haas Ferrari,16,DNF,0,2016
 3321,"Circuit of The Americas, Austin",NC,27,HUL,Force India Mercedes,1,DNF,0,2016
-3322,"Autodromo Hermanos Rodríguez, Mexico City",1,44,HAM,Mercedes,71,40:31.4,25,2016
-3323,"Autodromo Hermanos Rodríguez, Mexico City",2,6,ROS,Mercedes,71,+8.354s,18,2016
-3324,"Autodromo Hermanos Rodríguez, Mexico City",3,3,RIC,Red Bull Racing TAG Heuer,71,+20.858s,15,2016
-3325,"Autodromo Hermanos Rodríguez, Mexico City",4,33,VER,Red Bull Racing TAG Heuer,71,+21.323s,12,2016
-3326,"Autodromo Hermanos Rodríguez, Mexico City",5,5,VET,Ferrari,71,+27.313s,10,2016
-3327,"Autodromo Hermanos Rodríguez, Mexico City",6,7,RAI,Ferrari,71,+49.376s,8,2016
-3328,"Autodromo Hermanos Rodríguez, Mexico City",7,27,HUL,Force India Mercedes,71,+58.891s,6,2016
-3329,"Autodromo Hermanos Rodríguez, Mexico City",8,77,BOT,Williams Mercedes,71,+65.612s,4,2016
-3330,"Autodromo Hermanos Rodríguez, Mexico City",9,19,MAS,Williams Mercedes,71,+76.206s,2,2016
-3331,"Autodromo Hermanos Rodríguez, Mexico City",10,11,PER,Force India Mercedes,71,+76.798s,1,2016
-3332,"Autodromo Hermanos Rodríguez, Mexico City",11,9,ERI,Sauber Ferrari,70,+1 lap,0,2016
-3333,"Autodromo Hermanos Rodríguez, Mexico City",12,22,BUT,McLaren Honda,70,+1 lap,0,2016
-3334,"Autodromo Hermanos Rodríguez, Mexico City",13,14,ALO,McLaren Honda,70,+1 lap,0,2016
-3335,"Autodromo Hermanos Rodríguez, Mexico City",14,30,PAL,Renault,70,+1 lap,0,2016
-3336,"Autodromo Hermanos Rodríguez, Mexico City",15,12,NAS,Sauber Ferrari,70,+1 lap,0,2016
-3337,"Autodromo Hermanos Rodríguez, Mexico City",16,55,SAI,Toro Rosso Ferrari,70,+1 lap,0,2016
-3338,"Autodromo Hermanos Rodríguez, Mexico City",17,20,MAG,Renault,70,+1 lap,0,2016
-3339,"Autodromo Hermanos Rodríguez, Mexico City",18,26,KVY,Toro Rosso Ferrari,70,+1 lap,0,2016
-3340,"Autodromo Hermanos Rodríguez, Mexico City",19,21,GUT,Haas Ferrari,70,+1 lap,0,2016
-3341,"Autodromo Hermanos Rodríguez, Mexico City",20,8,GRO,Haas Ferrari,70,+1 lap,0,2016
-3342,"Autodromo Hermanos Rodríguez, Mexico City",21,31,OCO,MRT Mercedes,69,+2 laps,0,2016
-3343,"Autodromo Hermanos Rodríguez, Mexico City",NC,94,WEH,MRT Mercedes,0,DNF,0,2016
+3322,"Autodromo Hermanos Rodriguez, Mexico City",1,44,HAM,Mercedes,71,40:31.4,25,2016
+3323,"Autodromo Hermanos Rodriguez, Mexico City",2,6,ROS,Mercedes,71,+8.354s,18,2016
+3324,"Autodromo Hermanos Rodriguez, Mexico City",3,3,RIC,Red Bull Racing TAG Heuer,71,+20.858s,15,2016
+3325,"Autodromo Hermanos Rodriguez, Mexico City",4,33,VER,Red Bull Racing TAG Heuer,71,+21.323s,12,2016
+3326,"Autodromo Hermanos Rodriguez, Mexico City",5,5,VET,Ferrari,71,+27.313s,10,2016
+3327,"Autodromo Hermanos Rodriguez, Mexico City",6,7,RAI,Ferrari,71,+49.376s,8,2016
+3328,"Autodromo Hermanos Rodriguez, Mexico City",7,27,HUL,Force India Mercedes,71,+58.891s,6,2016
+3329,"Autodromo Hermanos Rodriguez, Mexico City",8,77,BOT,Williams Mercedes,71,+65.612s,4,2016
+3330,"Autodromo Hermanos Rodriguez, Mexico City",9,19,MAS,Williams Mercedes,71,+76.206s,2,2016
+3331,"Autodromo Hermanos Rodriguez, Mexico City",10,11,PER,Force India Mercedes,71,+76.798s,1,2016
+3332,"Autodromo Hermanos Rodriguez, Mexico City",11,9,ERI,Sauber Ferrari,70,+1 lap,0,2016
+3333,"Autodromo Hermanos Rodriguez, Mexico City",12,22,BUT,McLaren Honda,70,+1 lap,0,2016
+3334,"Autodromo Hermanos Rodriguez, Mexico City",13,14,ALO,McLaren Honda,70,+1 lap,0,2016
+3335,"Autodromo Hermanos Rodriguez, Mexico City",14,30,PAL,Renault,70,+1 lap,0,2016
+3336,"Autodromo Hermanos Rodriguez, Mexico City",15,12,NAS,Sauber Ferrari,70,+1 lap,0,2016
+3337,"Autodromo Hermanos Rodriguez, Mexico City",16,55,SAI,Toro Rosso Ferrari,70,+1 lap,0,2016
+3338,"Autodromo Hermanos Rodriguez, Mexico City",17,20,MAG,Renault,70,+1 lap,0,2016
+3339,"Autodromo Hermanos Rodriguez, Mexico City",18,26,KVY,Toro Rosso Ferrari,70,+1 lap,0,2016
+3340,"Autodromo Hermanos Rodriguez, Mexico City",19,21,GUT,Haas Ferrari,70,+1 lap,0,2016
+3341,"Autodromo Hermanos Rodriguez, Mexico City",20,8,GRO,Haas Ferrari,70,+1 lap,0,2016
+3342,"Autodromo Hermanos Rodriguez, Mexico City",21,31,OCO,MRT Mercedes,69,+2 laps,0,2016
+3343,"Autodromo Hermanos Rodriguez, Mexico City",NC,94,WEH,MRT Mercedes,0,DNF,0,2016
 3344,"Autodromo Jose Carlos Pace, Sao Paulo",1,44,HAM,Mercedes,71,01:01.3,25,2016
 3345,"Autodromo Jose Carlos Pace, Sao Paulo",2,6,ROS,Mercedes,71,+11.455s,18,2016
 3346,"Autodromo Jose Carlos Pace, Sao Paulo",3,33,VER,Red Bull Racing TAG Heuer,71,+21.481s,15,2016
@@ -3726,26 +3726,26 @@
 3725,"Circuit of The Americas, Austin",NC,3,RIC,Red Bull Racing TAG Heuer,14,DNF,0,2017
 3726,"Circuit of The Americas, Austin",NC,94,WEH,Sauber Ferrari,5,DNF,0,2017
 3727,"Circuit of The Americas, Austin",NC,27,HUL,Renault,3,DNF,0,2017
-3728,"Autodromo Hermanos Rodríguez, Mexico City",1,33,VER,Red Bull Racing TAG Heuer,71,36:26.6,25,2017
-3729,"Autodromo Hermanos Rodríguez, Mexico City",2,77,BOT,Mercedes,71,+19.678s,18,2017
-3730,"Autodromo Hermanos Rodríguez, Mexico City",3,7,RAI,Ferrari,71,+54.007s,15,2017
-3731,"Autodromo Hermanos Rodríguez, Mexico City",4,5,VET,Ferrari,71,+70.078s,12,2017
-3732,"Autodromo Hermanos Rodríguez, Mexico City",5,31,OCO,Force India Mercedes,70,+1 lap,10,2017
-3733,"Autodromo Hermanos Rodríguez, Mexico City",6,18,STR,Williams Mercedes,70,+1 lap,8,2017
-3734,"Autodromo Hermanos Rodríguez, Mexico City",7,11,PER,Force India Mercedes,70,+1 lap,6,2017
-3735,"Autodromo Hermanos Rodríguez, Mexico City",8,20,MAG,Haas Ferrari,70,+1 lap,4,2017
-3736,"Autodromo Hermanos Rodríguez, Mexico City",9,44,HAM,Mercedes,70,+1 lap,2,2017
-3737,"Autodromo Hermanos Rodríguez, Mexico City",10,14,ALO,McLaren Honda,70,+1 lap,1,2017
-3738,"Autodromo Hermanos Rodríguez, Mexico City",11,19,MAS,Williams Mercedes,70,+1 lap,0,2017
-3739,"Autodromo Hermanos Rodríguez, Mexico City",12,2,VAN,McLaren Honda,70,+1 lap,0,2017
-3740,"Autodromo Hermanos Rodríguez, Mexico City",13,10,GAS,Toro Rosso,70,+1 lap,0,2017
-3741,"Autodromo Hermanos Rodríguez, Mexico City",14,94,WEH,Sauber Ferrari,69,+2 laps,0,2017
-3742,"Autodromo Hermanos Rodríguez, Mexico City",15,8,GRO,Haas Ferrari,69,+2 laps,0,2017
-3743,"Autodromo Hermanos Rodríguez, Mexico City",NC,55,SAI,Renault,59,DNF,0,2017
-3744,"Autodromo Hermanos Rodríguez, Mexico City",NC,9,ERI,Sauber Ferrari,55,DNF,0,2017
-3745,"Autodromo Hermanos Rodríguez, Mexico City",NC,28,HAR,Toro Rosso,30,DNF,0,2017
-3746,"Autodromo Hermanos Rodríguez, Mexico City",NC,27,HUL,Renault,24,DNF,0,2017
-3747,"Autodromo Hermanos Rodríguez, Mexico City",NC,3,RIC,Red Bull Racing TAG Heuer,5,DNF,0,2017
+3728,"Autodromo Hermanos Rodriguez, Mexico City",1,33,VER,Red Bull Racing TAG Heuer,71,36:26.6,25,2017
+3729,"Autodromo Hermanos Rodriguez, Mexico City",2,77,BOT,Mercedes,71,+19.678s,18,2017
+3730,"Autodromo Hermanos Rodriguez, Mexico City",3,7,RAI,Ferrari,71,+54.007s,15,2017
+3731,"Autodromo Hermanos Rodriguez, Mexico City",4,5,VET,Ferrari,71,+70.078s,12,2017
+3732,"Autodromo Hermanos Rodriguez, Mexico City",5,31,OCO,Force India Mercedes,70,+1 lap,10,2017
+3733,"Autodromo Hermanos Rodriguez, Mexico City",6,18,STR,Williams Mercedes,70,+1 lap,8,2017
+3734,"Autodromo Hermanos Rodriguez, Mexico City",7,11,PER,Force India Mercedes,70,+1 lap,6,2017
+3735,"Autodromo Hermanos Rodriguez, Mexico City",8,20,MAG,Haas Ferrari,70,+1 lap,4,2017
+3736,"Autodromo Hermanos Rodriguez, Mexico City",9,44,HAM,Mercedes,70,+1 lap,2,2017
+3737,"Autodromo Hermanos Rodriguez, Mexico City",10,14,ALO,McLaren Honda,70,+1 lap,1,2017
+3738,"Autodromo Hermanos Rodriguez, Mexico City",11,19,MAS,Williams Mercedes,70,+1 lap,0,2017
+3739,"Autodromo Hermanos Rodriguez, Mexico City",12,2,VAN,McLaren Honda,70,+1 lap,0,2017
+3740,"Autodromo Hermanos Rodriguez, Mexico City",13,10,GAS,Toro Rosso,70,+1 lap,0,2017
+3741,"Autodromo Hermanos Rodriguez, Mexico City",14,94,WEH,Sauber Ferrari,69,+2 laps,0,2017
+3742,"Autodromo Hermanos Rodriguez, Mexico City",15,8,GRO,Haas Ferrari,69,+2 laps,0,2017
+3743,"Autodromo Hermanos Rodriguez, Mexico City",NC,55,SAI,Renault,59,DNF,0,2017
+3744,"Autodromo Hermanos Rodriguez, Mexico City",NC,9,ERI,Sauber Ferrari,55,DNF,0,2017
+3745,"Autodromo Hermanos Rodriguez, Mexico City",NC,28,HAR,Toro Rosso,30,DNF,0,2017
+3746,"Autodromo Hermanos Rodriguez, Mexico City",NC,27,HUL,Renault,24,DNF,0,2017
+3747,"Autodromo Hermanos Rodriguez, Mexico City",NC,3,RIC,Red Bull Racing TAG Heuer,5,DNF,0,2017
 3748,"Autodromo Jose Carlos Pace, Sao Paulo",1,5,VET,Ferrari,71,31:26.3,25,2017
 3749,"Autodromo Jose Carlos Pace, Sao Paulo",2,77,BOT,Mercedes,71,+2.762s,18,2017
 3750,"Autodromo Jose Carlos Pace, Sao Paulo",3,7,RAI,Ferrari,71,+4.600s,15,2017
@@ -4146,26 +4146,26 @@
 4145,"Circuit of The Americas, Austin",NC,3,RIC,Red Bull Racing TAG Heuer,8,DNF,0,2018
 4146,"Circuit of The Americas, Austin",NC,8,GRO,Haas Ferrari,2,DNF,0,2018
 4147,"Circuit of The Americas, Austin",NC,14,ALO,McLaren Renault,1,DNF,0,2018
-4148,"Autodromo Hermanos Rodríguez, Mexico City",1,33,VER,Red Bull Racing TAG Heuer,71,38:28.9,25,2018
-4149,"Autodromo Hermanos Rodríguez, Mexico City",2,5,VET,Ferrari,71,+17.316s,18,2018
-4150,"Autodromo Hermanos Rodríguez, Mexico City",3,7,RAI,Ferrari,71,+49.914s,15,2018
-4151,"Autodromo Hermanos Rodríguez, Mexico City",4,44,HAM,Mercedes,71,+78.738s,12,2018
-4152,"Autodromo Hermanos Rodríguez, Mexico City",5,77,BOT,Mercedes,70,+1 lap,10,2018
-4153,"Autodromo Hermanos Rodríguez, Mexico City",6,27,HUL,Renault,69,+2 laps,8,2018
-4154,"Autodromo Hermanos Rodríguez, Mexico City",7,16,LEC,Sauber Ferrari,69,+2 laps,6,2018
-4155,"Autodromo Hermanos Rodríguez, Mexico City",8,2,VAN,McLaren Renault,69,+2 laps,4,2018
-4156,"Autodromo Hermanos Rodríguez, Mexico City",9,9,ERI,Sauber Ferrari,69,+2 laps,2,2018
-4157,"Autodromo Hermanos Rodríguez, Mexico City",10,10,GAS,Scuderia Toro Rosso Honda,69,+2 laps,1,2018
-4158,"Autodromo Hermanos Rodríguez, Mexico City",11,31,OCO,Force India Mercedes,69,+2 laps,0,2018
-4159,"Autodromo Hermanos Rodríguez, Mexico City",12,18,STR,Williams Mercedes,69,+2 laps,0,2018
-4160,"Autodromo Hermanos Rodríguez, Mexico City",13,35,SIR,Williams Mercedes,69,+2 laps,0,2018
-4161,"Autodromo Hermanos Rodríguez, Mexico City",14,28,HAR,Scuderia Toro Rosso Honda,69,+2 laps,0,2018
-4162,"Autodromo Hermanos Rodríguez, Mexico City",15,20,MAG,Haas Ferrari,69,+2 laps,0,2018
-4163,"Autodromo Hermanos Rodríguez, Mexico City",16,8,GRO,Haas Ferrari,68,+3 laps,0,2018
-4164,"Autodromo Hermanos Rodríguez, Mexico City",NC,3,RIC,Red Bull Racing TAG Heuer,61,DNF,0,2018
-4165,"Autodromo Hermanos Rodríguez, Mexico City",NC,11,PER,Force India Mercedes,38,DNF,0,2018
-4166,"Autodromo Hermanos Rodríguez, Mexico City",NC,55,SAI,Renault,28,DNF,0,2018
-4167,"Autodromo Hermanos Rodríguez, Mexico City",NC,14,ALO,McLaren Renault,3,DNF,0,2018
+4148,"Autodromo Hermanos Rodriguez, Mexico City",1,33,VER,Red Bull Racing TAG Heuer,71,38:28.9,25,2018
+4149,"Autodromo Hermanos Rodriguez, Mexico City",2,5,VET,Ferrari,71,+17.316s,18,2018
+4150,"Autodromo Hermanos Rodriguez, Mexico City",3,7,RAI,Ferrari,71,+49.914s,15,2018
+4151,"Autodromo Hermanos Rodriguez, Mexico City",4,44,HAM,Mercedes,71,+78.738s,12,2018
+4152,"Autodromo Hermanos Rodriguez, Mexico City",5,77,BOT,Mercedes,70,+1 lap,10,2018
+4153,"Autodromo Hermanos Rodriguez, Mexico City",6,27,HUL,Renault,69,+2 laps,8,2018
+4154,"Autodromo Hermanos Rodriguez, Mexico City",7,16,LEC,Sauber Ferrari,69,+2 laps,6,2018
+4155,"Autodromo Hermanos Rodriguez, Mexico City",8,2,VAN,McLaren Renault,69,+2 laps,4,2018
+4156,"Autodromo Hermanos Rodriguez, Mexico City",9,9,ERI,Sauber Ferrari,69,+2 laps,2,2018
+4157,"Autodromo Hermanos Rodriguez, Mexico City",10,10,GAS,Scuderia Toro Rosso Honda,69,+2 laps,1,2018
+4158,"Autodromo Hermanos Rodriguez, Mexico City",11,31,OCO,Force India Mercedes,69,+2 laps,0,2018
+4159,"Autodromo Hermanos Rodriguez, Mexico City",12,18,STR,Williams Mercedes,69,+2 laps,0,2018
+4160,"Autodromo Hermanos Rodriguez, Mexico City",13,35,SIR,Williams Mercedes,69,+2 laps,0,2018
+4161,"Autodromo Hermanos Rodriguez, Mexico City",14,28,HAR,Scuderia Toro Rosso Honda,69,+2 laps,0,2018
+4162,"Autodromo Hermanos Rodriguez, Mexico City",15,20,MAG,Haas Ferrari,69,+2 laps,0,2018
+4163,"Autodromo Hermanos Rodriguez, Mexico City",16,8,GRO,Haas Ferrari,68,+3 laps,0,2018
+4164,"Autodromo Hermanos Rodriguez, Mexico City",NC,3,RIC,Red Bull Racing TAG Heuer,61,DNF,0,2018
+4165,"Autodromo Hermanos Rodriguez, Mexico City",NC,11,PER,Force India Mercedes,38,DNF,0,2018
+4166,"Autodromo Hermanos Rodriguez, Mexico City",NC,55,SAI,Renault,28,DNF,0,2018
+4167,"Autodromo Hermanos Rodriguez, Mexico City",NC,14,ALO,McLaren Renault,3,DNF,0,2018
 4168,"Autodromo Jose Carlos Pace, Sao Paulo",1,44,HAM,Mercedes,71,27:09.1,25,2018
 4169,"Autodromo Jose Carlos Pace, Sao Paulo",2,33,VER,Red Bull Racing TAG Heuer,71,+1.469s,18,2018
 4170,"Autodromo Jose Carlos Pace, Sao Paulo",3,7,RAI,Ferrari,71,+4.764s,15,2018
@@ -4546,26 +4546,26 @@
 4545,"Suzuka International Racing Course, Suzuka",16,63,RUS,Williams Mercedes,50,+2 laps,0,2019
 4546,"Suzuka International Racing Course, Suzuka",17,88,KUB,Williams Mercedes,50,+2 laps,0,2019
 4547,"Suzuka International Racing Course, Suzuka",NC,33,VER,Red Bull Racing Honda,14,DNF,0,2019
-4548,"Autodromo Hermanos Rodríguez, Mexico City",1,44,HAM,Mercedes,71,36:48.9,25,2019
-4549,"Autodromo Hermanos Rodríguez, Mexico City",2,5,VET,Ferrari,71,+1.766s,18,2019
-4550,"Autodromo Hermanos Rodríguez, Mexico City",3,77,BOT,Mercedes,71,+3.553s,15,2019
-4551,"Autodromo Hermanos Rodríguez, Mexico City",4,16,LEC,Ferrari,71,+6.368s,13,2019
-4552,"Autodromo Hermanos Rodríguez, Mexico City",5,23,ALB,Red Bull Racing Honda,71,+21.399s,10,2019
-4553,"Autodromo Hermanos Rodríguez, Mexico City",6,33,VER,Red Bull Racing Honda,71,+68.807s,8,2019
-4554,"Autodromo Hermanos Rodríguez, Mexico City",7,11,PER,Racing Point BWT Mercedes,71,+73.819s,6,2019
-4555,"Autodromo Hermanos Rodríguez, Mexico City",8,3,RIC,Renault,71,+74.924s,4,2019
-4556,"Autodromo Hermanos Rodríguez, Mexico City",9,10,GAS,Scuderia Toro Rosso Honda,70,+1 lap,2,2019
-4557,"Autodromo Hermanos Rodríguez, Mexico City",10,27,HUL,Renault,70,+1 lap,1,2019
-4558,"Autodromo Hermanos Rodríguez, Mexico City",11,26,KVY,Scuderia Toro Rosso Honda,70,+1 lap,0,2019
-4559,"Autodromo Hermanos Rodríguez, Mexico City",12,18,STR,Racing Point BWT Mercedes,70,+1 lap,0,2019
-4560,"Autodromo Hermanos Rodríguez, Mexico City",13,55,SAI,McLaren Renault,70,+1 lap,0,2019
-4561,"Autodromo Hermanos Rodríguez, Mexico City",14,99,GIO,Alfa Romeo Racing Ferrari,70,+1 lap,0,2019
-4562,"Autodromo Hermanos Rodríguez, Mexico City",15,20,MAG,Haas Ferrari,69,+2 laps,0,2019
-4563,"Autodromo Hermanos Rodríguez, Mexico City",16,63,RUS,Williams Mercedes,69,+2 laps,0,2019
-4564,"Autodromo Hermanos Rodríguez, Mexico City",17,8,GRO,Haas Ferrari,69,+2 laps,0,2019
-4565,"Autodromo Hermanos Rodríguez, Mexico City",18,88,KUB,Williams Mercedes,69,+2 laps,0,2019
-4566,"Autodromo Hermanos Rodríguez, Mexico City",NC,7,RAI,Alfa Romeo Racing Ferrari,58,DNF,0,2019
-4567,"Autodromo Hermanos Rodríguez, Mexico City",NC,4,NOR,McLaren Renault,48,DNF,0,2019
+4548,"Autodromo Hermanos Rodriguez, Mexico City",1,44,HAM,Mercedes,71,36:48.9,25,2019
+4549,"Autodromo Hermanos Rodriguez, Mexico City",2,5,VET,Ferrari,71,+1.766s,18,2019
+4550,"Autodromo Hermanos Rodriguez, Mexico City",3,77,BOT,Mercedes,71,+3.553s,15,2019
+4551,"Autodromo Hermanos Rodriguez, Mexico City",4,16,LEC,Ferrari,71,+6.368s,13,2019
+4552,"Autodromo Hermanos Rodriguez, Mexico City",5,23,ALB,Red Bull Racing Honda,71,+21.399s,10,2019
+4553,"Autodromo Hermanos Rodriguez, Mexico City",6,33,VER,Red Bull Racing Honda,71,+68.807s,8,2019
+4554,"Autodromo Hermanos Rodriguez, Mexico City",7,11,PER,Racing Point BWT Mercedes,71,+73.819s,6,2019
+4555,"Autodromo Hermanos Rodriguez, Mexico City",8,3,RIC,Renault,71,+74.924s,4,2019
+4556,"Autodromo Hermanos Rodriguez, Mexico City",9,10,GAS,Scuderia Toro Rosso Honda,70,+1 lap,2,2019
+4557,"Autodromo Hermanos Rodriguez, Mexico City",10,27,HUL,Renault,70,+1 lap,1,2019
+4558,"Autodromo Hermanos Rodriguez, Mexico City",11,26,KVY,Scuderia Toro Rosso Honda,70,+1 lap,0,2019
+4559,"Autodromo Hermanos Rodriguez, Mexico City",12,18,STR,Racing Point BWT Mercedes,70,+1 lap,0,2019
+4560,"Autodromo Hermanos Rodriguez, Mexico City",13,55,SAI,McLaren Renault,70,+1 lap,0,2019
+4561,"Autodromo Hermanos Rodriguez, Mexico City",14,99,GIO,Alfa Romeo Racing Ferrari,70,+1 lap,0,2019
+4562,"Autodromo Hermanos Rodriguez, Mexico City",15,20,MAG,Haas Ferrari,69,+2 laps,0,2019
+4563,"Autodromo Hermanos Rodriguez, Mexico City",16,63,RUS,Williams Mercedes,69,+2 laps,0,2019
+4564,"Autodromo Hermanos Rodriguez, Mexico City",17,8,GRO,Haas Ferrari,69,+2 laps,0,2019
+4565,"Autodromo Hermanos Rodriguez, Mexico City",18,88,KUB,Williams Mercedes,69,+2 laps,0,2019
+4566,"Autodromo Hermanos Rodriguez, Mexico City",NC,7,RAI,Alfa Romeo Racing Ferrari,58,DNF,0,2019
+4567,"Autodromo Hermanos Rodriguez, Mexico City",NC,4,NOR,McLaren Renault,48,DNF,0,2019
 4568,"Circuit of The Americas, Austin",1,77,BOT,Mercedes,56,33:55.7,25,2019
 4569,"Circuit of The Americas, Austin",2,44,HAM,Mercedes,56,+4.148s,18,2019
 4570,"Circuit of The Americas, Austin",3,33,VER,Red Bull Racing Honda,56,+5.002s,15,2019
